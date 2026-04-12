@@ -1,0 +1,10 @@
+<template>
+  <div id="loading" role="status">
+    <svg class="loading-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="4" fill="#538d4e"/>
+      <text x="16" y="16" text-anchor="middle" dominant-baseline="central"
+            font-family="Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="700" fill="#fff">R</text>
+    </svg>
+    <p>Loading puzzle data...</p>
+  </div>
+</template>

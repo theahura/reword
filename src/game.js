@@ -39,7 +39,14 @@ export function getAnswersForRound(round) {
       if (!isTrivialSuffix(w, round.root)) results.push(w);
     }
   }
-  return results;
+  const commonSet = new Set(round.commonWords || []);
+  if (commonSet.size === 0) return results;
+  const common = [];
+  const rest = [];
+  for (const w of results) {
+    (commonSet.has(w) ? common : rest).push(w);
+  }
+  return [...common, ...rest];
 }
 
 export function selectDailyPuzzle(puzzleData, dateStr) {

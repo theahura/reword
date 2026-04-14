@@ -206,6 +206,21 @@ describe('ScoreScreen', () => {
     expect(wrapper.text()).toContain('Total Time');
   });
 
+  it('applies hinted class to round results where hinted is true', () => {
+    const hintedResults = [
+      { answer: 'coat', timeMs: 5000, root: 'cat', possibleAnswers: ['coat', 'taco'], hinted: true },
+      { answer: '', timeMs: 3000, root: 'dog', possibleAnswers: ['gods'] },
+      { answer: 'diner', timeMs: 4000, root: 'rind', possibleAnswers: ['diner', 'drink'], hinted: false },
+    ];
+    const wrapper = mount(ScoreScreen, {
+      props: { results: hintedResults, dateStr: '2026-04-05', totalTimeMs: 12000 },
+    });
+    const roundResults = wrapper.findAll('.round-result');
+    expect(roundResults[0].classes()).toContain('hinted');
+    expect(roundResults[1].classes()).not.toContain('hinted');
+    expect(roundResults[2].classes()).not.toContain('hinted');
+  });
+
   it('shows a word count link for rounds with possible answers', () => {
     const manyAnswersResults = [
       {
@@ -370,6 +385,33 @@ describe('GameBoard', () => {
     });
     await wrapper.find('#skip-btn').trigger('click');
     expect(wrapper.emitted('skip')).toBeTruthy();
+  });
+
+  it('renders a hint button that emits hint event when clicked', async () => {
+    const wrapper = mount(GameBoard, {
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '' },
+    });
+    const hintBtn = wrapper.find('#hint-btn');
+    expect(hintBtn.exists()).toBe(true);
+    await hintBtn.trigger('click');
+    expect(wrapper.emitted('hint')).toBeTruthy();
+  });
+
+  it('hides hint button when hintIndex is set', () => {
+    const wrapper = mount(GameBoard, {
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '', hintIndex: 0 },
+    });
+    expect(wrapper.find('#hint-btn').exists()).toBe(false);
+  });
+
+  it('applies highlighted class to the correct offered tile when hintIndex is set', () => {
+    const wrapper = mount(GameBoard, {
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '', hintIndex: 1 },
+    });
+    // The offered TileRack is the second tile-rack
+    const offeredRack = wrapper.findAll('.tile-rack')[1];
+    const tiles = offeredRack.findAll('.tile');
+    expect(tiles[1].classes()).toContain('highlighted');
   });
 
   it('renders all input tiles in the input area when there are many letters', () => {

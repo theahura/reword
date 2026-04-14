@@ -16,12 +16,14 @@ const props = defineProps({
   letters: { type: Array, default: () => [] },
   tileClass: { type: String, default: '' },
   usedIndices: { type: Array, default: () => [] },
+  highlightedIndex: { type: Number, default: null },
 });
 
 function getTileClass(i) {
   const classes = [];
   if (props.tileClass) classes.push(props.tileClass);
   if (props.usedIndices.includes(i)) classes.push('used');
+  if (props.highlightedIndex === i) classes.push('highlighted');
   return classes.join(' ');
 }
 </script>

@@ -175,6 +175,17 @@ header h1 {
   transition: all 0.2s ease-out;
 }
 
+.tile.highlighted {
+  border-color: #b59f3b;
+  box-shadow: 0 0 8px rgba(181, 159, 59, 0.6);
+  animation: hint-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes hint-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(181, 159, 59, 0.6); }
+  50% { box-shadow: 0 0 16px rgba(181, 159, 59, 0.9); }
+}
+
 #input-area .tile.invalid {
   background: #b59f3b;
   border-color: #b59f3b;
@@ -373,6 +384,10 @@ header h1 {
   color: #e74c3c;
 }
 
+.round-result.hinted {
+  color: #b59f3b;
+}
+
 .round-num {
   min-width: 20px;
   font-weight: bold;
@@ -438,6 +453,25 @@ header h1 {
 
 #skip-btn:hover {
   background: rgba(255,255,255,0.05);
+}
+
+/* Hint button */
+#hint-btn {
+  display: block;
+  margin: 8px auto;
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid #b59f3b;
+  border-radius: 4px;
+  color: #b59f3b;
+  font-size: 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#hint-btn:hover {
+  background: rgba(181, 159, 59, 0.1);
 }
 
 /* Loading */

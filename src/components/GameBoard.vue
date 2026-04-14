@@ -9,7 +9,7 @@
     <TileRack :letters="round.root.split('')" :used-indices="rootUsedIndices" />
 
     <div class="section-label">Add Letters</div>
-    <TileRack :letters="round.offeredLetters" tile-class="offered" :used-indices="offeredUsedIndices" />
+    <TileRack :letters="round.offeredLetters" tile-class="offered" :used-indices="offeredUsedIndices" :highlighted-index="hintIndex" />
 
     <div class="instructions">Type a new word using all root letters + one or more offered letters</div>
 
@@ -30,6 +30,7 @@
     </div>
 
     <button id="submit-btn" @click="$emit('submit')">Submit</button>
+    <button v-if="hintIndex == null" id="hint-btn" @click="$emit('hint')">💡 Hint</button>
     <button id="skip-btn" @click="$emit('skip')">Skip</button>
   </div>
 </template>
@@ -48,9 +49,10 @@ const props = defineProps({
   messageType: { type: String, default: '' },
   flyUp: { type: Boolean, default: false },
   tilesFadingIn: { type: Boolean, default: false },
+  hintIndex: { type: Number, default: null },
 });
 
-defineEmits(['submit', 'skip']);
+defineEmits(['submit', 'skip', 'hint']);
 
 const minLen = computed(() => props.round.root.length + 1);
 const displayLen = computed(() => Math.max(minLen.value, props.inputLetters.length));

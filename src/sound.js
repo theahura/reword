@@ -75,6 +75,13 @@ export function createSoundEffects(audioCtx, masterGain) {
       playTone('sawtooth', 150, 0.2);
     },
 
+    playHint() {
+      playTone('sine', 880, 0.15, (osc, gain, now) => {
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      });
+    },
+
     playSkip() {
       const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();

@@ -119,8 +119,49 @@ export function getOfferedLetters(puzzleEntry, rng) {
   return seededShuffle([...letters], rng);
 }
 
+export function getHintLetter(round) {
+  const offered = round.offeredLetters || [];
+  const commonKeys = round.commonKeys || [];
+  const commonWords = new Set(round.commonWords || []);
+  const expansions = round.expansions || {};
+
+  // Find offered letters that are single-char commonKeys
+  const commonMatches = offered.filter(l => commonKeys.includes(l));
+
+  if (commonMatches.length > 0) {
+    // Pick the one with the most common word answers
+    let best = commonMatches[0];
+    let bestCount = 0;
+    for (const l of commonMatches) {
+      const words = expansions[l] || [];
+      const count = words.filter(w => commonWords.has(w)).length;
+      if (count > bestCount) {
+        bestCount = count;
+        best = l;
+      }
+    }
+    return best;
+  }
+
+  // Fallback: offered letter with the most total answers
+  let best = null;
+  let bestCount = 0;
+  for (const l of offered) {
+    const words = expansions[l] || [];
+    if (words.length > bestCount) {
+      bestCount = words.length;
+      best = l;
+    }
+  }
+  return best;
+}
+
 export function generateShareText(results, dateStr, totalTimeMs, timerDisabled) {
-  const emojis = results.map(r => r.answer.length > 0 ? '🟩' : '⬜').join('');
+  const emojis = results.map(r => {
+    if (r.answer.length === 0) return '⬜';
+    if (r.hinted) return '🟡';
+    return '🟩';
+  }).join('');
   const solved = results.filter(r => r.answer.length > 0).length;
   if (timerDisabled) {
     return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length}`;
@@ -208,10 +249,11 @@ export function updateLifetimeStats(existingStats, completedRounds, totalTimeMs,
   const gameLetters = solvedRounds.reduce((sum, r) => sum + r.answer.length, 0);
   const gameWords = solvedRounds.length;
   const gameSkips = completedRounds.filter(r => r.answer.length === 0).length;
+  const gameHints = completedRounds.filter(r => r.hinted).length;
   const gameLongestWord = solvedRounds.reduce(
     (longest, r) => r.answer.length > longest.length ? r.answer : longest, ''
   );
-  const isPerfect = completedRounds.length === 10 && gameSkips === 0 && !timerDisabled;
+  const isPerfect = completedRounds.length === 10 && gameSkips === 0 && gameHints === 0 && !timerDisabled;
 
   if (!existingStats) {
     return {
@@ -223,6 +265,7 @@ export function updateLifetimeStats(existingStats, completedRounds, totalTimeMs,
       bestLetterScore: gameLetters,
       longestWord: gameLongestWord,
       totalSkips: gameSkips,
+      totalHints: gameHints,
       perfectGamesPlayed: isPerfect ? 1 : 0,
       perfectGamesTotalTimeMs: isPerfect ? totalTimeMs : 0,
     };
@@ -248,6 +291,7 @@ export function updateLifetimeStats(existingStats, completedRounds, totalTimeMs,
     longestWord: gameLongestWord.length > existingStats.longestWord.length
       ? gameLongestWord : existingStats.longestWord,
     totalSkips: existingStats.totalSkips + gameSkips,
+    totalHints: (existingStats.totalHints || 0) + gameHints,
     perfectGamesPlayed: (existingStats.perfectGamesPlayed || 0) + (isPerfect ? 1 : 0),
     perfectGamesTotalTimeMs: (existingStats.perfectGamesTotalTimeMs || 0) + (isPerfect ? totalTimeMs : 0),
   };

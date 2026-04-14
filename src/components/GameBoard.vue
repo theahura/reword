@@ -9,7 +9,7 @@
     <TileRack :letters="round.root.split('')" :used-indices="rootUsedIndices" />
 
     <div class="section-label">Add Letters</div>
-    <TileRack :letters="round.offeredLetters" tile-class="offered" :used-indices="offeredUsedIndices" />
+    <TileRack :letters="round.offeredLetters" tile-class="offered" :used-indices="offeredUsedIndices" :highlighted-index="hintIndex" />
 
     <div class="instructions">Type a new word using all root letters + one or more offered letters</div>
 
@@ -48,6 +48,7 @@ const props = defineProps({
   messageType: { type: String, default: '' },
   flyUp: { type: Boolean, default: false },
   tilesFadingIn: { type: Boolean, default: false },
+  hintIndex: { type: Number, default: null },
 });
 
 defineEmits(['submit', 'skip']);

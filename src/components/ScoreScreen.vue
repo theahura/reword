@@ -30,7 +30,7 @@
         v-for="(r, i) in results"
         :key="i"
         class="round-result"
-        :class="r.answer.length > 0 ? 'solved' : 'skipped'"
+        :class="[r.answer.length > 0 ? 'solved' : 'skipped', r.hinted && r.answer.length > 0 ? 'hinted' : '']"
       >
         <span class="round-num">{{ i + 1 }}</span>
         <span class="round-root">{{ r.root.toUpperCase() }}</span>

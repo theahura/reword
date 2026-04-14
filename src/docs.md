@@ -24,12 +24,16 @@ Path: @/src
 - **`matchTypedToTiles()`**: Given typed letters, root letters, and offered letters, produces a matched array where each letter is tagged as `root`, `offered`, or `invalid`. Prioritizes matching against root letters first. Used by `GameBoard` for live input display and by `WordListModal` to color-code possible answer tiles.
 - **`getAnswersForRound()`**: Collects all non-trivial-suffix valid answers by iterating expansion keys that are subsets of the offered letters. Then performs a stable partition: words present in `round.commonWords` are placed before all other words. If `commonWords` is absent or empty, original iteration order is preserved. Both the skip-round hint (up to 3 answers) and the score screen word list consume this function's output, so this is the single sort point for common word priority.
 - **Answer validation**: `isValidAnswer()` checks that the answer exists in expansions whose keys are subsets of offered letters, and is not a trivial suffix (s, ed, er appended to root).
+- **Hint selection**: `getHintLetter(round)` picks the best offered letter to reveal as a hint. It prefers offered letters that appear as single-char `commonKeys` entries, breaking ties by counting how many `commonWords` that letter's expansion produces. If no offered letter is a common key, it falls back to the offered letter with the most total expansion words. Returns `null` if no offered letters have any expansions.
+- **Share text**: `generateShareText()` maps each round to an emoji: `🟩` (solved), `🟡` (hinted and solved), or `⬜` (skipped). Skip takes precedence over hint (empty answer = skipped regardless of hint state).
+- **Lifetime stats**: `updateLifetimeStats()` tracks `totalHints` across games. A game is "perfect" only if all 10 rounds are solved with no skips, no hints, and timer enabled. Hinted rounds disqualify a game from perfect status, affecting `fastestTimeMs` and `perfectGamesPlayed` tracking.
 
 ### Things to Know
 
 - `offeredLetters` is always exactly 3 letters, generated from expansion keys plus random alphabet fill. `getOfferedLetters()` uses a priority hierarchy for the first letter: (1) a single-letter key from `commonKeys` (expansion keys leading to common words), (2) any letter extracted from multi-letter common keys, (3) fallback to any valid expansion key if `commonKeys` is absent or empty. The `commonKeys` field is expected to come from the puzzle data; if absent, the function falls back to the pre-existing behavior of picking any valid expansion letter.
 - Trivial suffix filtering (`isTrivialSuffix`) applies to both answer validation and possible answer listing -- words like "cats" for root "cat" are excluded everywhere
 - The `expansions` map keys are letter combinations (e.g., "e", "el"), not full words -- `isKeySubsetOfOffered()` checks if the key's letters are all present in the offered set
+- The `commonKeys` and `commonWords` fields from puzzle data are used both at puzzle generation time (for biasing offered letters) and at runtime (for hint selection via `getHintLetter`). These fields are optional; code falls back gracefully when they are absent.
 - Timer gives 70s on touch devices vs 60s on pointer devices, detected once via `matchMedia` at module load
 
 Created and maintained by Nori.

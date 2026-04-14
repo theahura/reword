@@ -6,6 +6,7 @@
       <header>
         <h1>Reword</h1>
         <button class="header-icon" @click="showHowToPlay = true" aria-label="How to play">?</button>
+        <button v-if="hintAvailable && hintIndex === null && !gameComplete" id="hint-btn" aria-label="Hint" @click="handleHint">💡</button>
         <button id="mute-btn" role="switch" :aria-checked="String(!muted)" :aria-label="'Sound'" @click="toggleMute">
           {{ muted ? '\u{1F507}' : '\u{1F50A}' }}
         </button>
@@ -22,6 +23,7 @@
           :message-type="messageType"
           :fly-up="flyUp"
           :tiles-fading-in="tilesFadingIn"
+          :hint-index="hintIndex"
           @submit="handleSubmit"
           @skip="handleSkip"
         >
@@ -59,7 +61,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
-import { selectDailyPuzzle, isValidAnswer, calculateScore, getAnswersForRound, generateShareText, getSubmitFeedbackType, updateStreakStats, updateLifetimeStats, processKeyPress } from '../game.js';
+import { selectDailyPuzzle, isValidAnswer, calculateScore, getAnswersForRound, generateShareText, getSubmitFeedbackType, updateStreakStats, updateLifetimeStats, processKeyPress, getHintLetter } from '../game.js';
 import { getAudioContext, initSound } from '../sound.js';
 import GameBoard from './GameBoard.vue';
 import VirtualKeyboard from './VirtualKeyboard.vue';
@@ -96,6 +98,8 @@ let timerInterval = null;
 const ROUND_TIME_MS = window.matchMedia('(pointer: coarse)').matches ? 70000 : 60000;
 const timerDisplay = ref(formatRoundTime(ROUND_TIME_MS));
 const timerWarning = ref(false);
+const hintIndex = ref(null);
+const hintAvailable = ref(false);
 
 function formatRoundTime(ms) {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
@@ -146,14 +150,19 @@ const lifetimeStats = ref(null);
 function startTimer() {
   if (!state.startTime) state.startTime = Date.now();
   state.roundStartTime = Date.now();
-  if (timerDisabled.value) return;
+  if (timerDisabled.value) {
+    hintAvailable.value = true;
+    return;
+  }
   state.roundDeadline = Date.now() + ROUND_TIME_MS;
   timerWarning.value = false;
+  hintAvailable.value = false;
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     const remaining = state.roundDeadline - Date.now();
     timerDisplay.value = formatRoundTime(remaining);
     timerWarning.value = remaining <= 10000;
+    if (!hintAvailable.value && remaining <= 30000) hintAvailable.value = true;
     if (remaining <= 0) {
       handleSkip();
     }
@@ -193,13 +202,27 @@ function handleSubmit() {
 
   const timeMs = Date.now() - state.roundStartTime;
   const possibleAnswers = getAnswersForRound(round);
-  state.completedRounds.push({ answer, timeMs, root: round.root, offeredLetters: round.offeredLetters, possibleAnswers });
+  state.completedRounds.push({ answer, timeMs, root: round.root, offeredLetters: round.offeredLetters, possibleAnswers, hinted: hintIndex.value !== null });
   flyUp.value = true;
   message.value = 'Correct!';
   messageType.value = 'success';
   playSound('playCorrect');
   state.transitioning = true;
   setTimeout(() => advanceRound(), 700);
+}
+
+function handleHint() {
+  ensureAudio();
+  if (state.transitioning || state.currentRound >= 10) return;
+  if (hintIndex.value !== null) return;
+  if (!state.startTime) startTimer();
+  const round = puzzle.value[state.currentRound];
+  const letter = getHintLetter(round);
+  if (letter === null) return;
+  const idx = round.offeredLetters.indexOf(letter);
+  if (idx === -1) return;
+  hintIndex.value = idx;
+  playSound('playHint');
 }
 
 function handleSkip() {
@@ -209,7 +232,7 @@ function handleSkip() {
   const round = puzzle.value[state.currentRound];
   const timeMs = Date.now() - state.roundStartTime;
   const possibleAnswers = getAnswersForRound(round);
-  state.completedRounds.push({ answer: '', timeMs, root: round.root, offeredLetters: round.offeredLetters, possibleAnswers });
+  state.completedRounds.push({ answer: '', timeMs, root: round.root, offeredLetters: round.offeredLetters, possibleAnswers, hinted: hintIndex.value !== null });
   playSound('playSkip');
   if (possibleAnswers.length > 0) {
     message.value = `Possible: ${possibleAnswers.slice(0, 3).join(', ')}`;
@@ -238,6 +261,7 @@ function advanceRound() {
     message.value = '';
     messageType.value = '';
     flyUp.value = false;
+    hintIndex.value = null;
     tilesFadingIn.value = true;
     startTimer();
     setTimeout(() => {

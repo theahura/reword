@@ -15,6 +15,7 @@ import {
   processKeyPress,
   formatCountdown,
   getTimeUntilMidnightUTC,
+  getHintLetter,
 } from '../src/game.js';
 
 // Minimal puzzle data for testing
@@ -443,6 +444,35 @@ describe('generateShareText', () => {
     const text = generateShareText(results, '2026-04-05', 60000, false);
     const lines = text.split('\n');
     expect(lines[2]).toBe('10/10 | 1:00');
+  });
+
+  it('shows yellow squares for hinted rounds that were solved', () => {
+    const results = [
+      { answer: 'word', timeMs: 1000, root: 'wor', hinted: true },
+      { answer: 'test', timeMs: 1000, root: 'tes' },
+      { answer: '', timeMs: 1000, root: 'abc' },
+      { answer: 'five', timeMs: 1000, root: 'fiv', hinted: true },
+      { answer: 'six', timeMs: 1000, root: 'si' },
+      { answer: '', timeMs: 1000, root: 'def' },
+      { answer: 'eig', timeMs: 1000, root: 'ei' },
+      { answer: 'nin', timeMs: 1000, root: 'ni' },
+      { answer: 'ten', timeMs: 1000, root: 'te' },
+      { answer: 'ele', timeMs: 1000, root: 'el' },
+    ];
+    const text = generateShareText(results, '2026-04-05', 30000);
+    const lines = text.split('\n');
+    expect(lines[1]).toBe('🟡🟩⬜🟡🟩⬜🟩🟩🟩🟩');
+  });
+
+  it('shows skip square even when round was hinted then skipped', () => {
+    const results = [
+      { answer: '', timeMs: 1000, root: 'abc', hinted: true },
+      ...Array.from({ length: 9 }, () => ({ answer: 'word', timeMs: 1000, root: 'wor' })),
+    ];
+    const text = generateShareText(results, '2026-04-05', 30000);
+    const lines = text.split('\n');
+    // First round: skipped (even though hinted) = white square
+    expect(lines[1][0]).toBe('⬜');
   });
 
 });
@@ -929,5 +959,98 @@ describe('updateLifetimeStats', () => {
     expect(stats.perfectGamesPlayed).toBe(1);
     expect(stats.perfectGamesTotalTimeMs).toBe(40000);
     expect(stats.fastestTimeMs).toBe(40000);
+  });
+
+  it('does not count hinted game as perfect even with all rounds solved', () => {
+    const hintedPerfectRounds = perfectGameRounds.map((r, i) => ({
+      ...r,
+      hinted: i === 3,
+    }));
+    const stats = updateLifetimeStats(null, hintedPerfectRounds, 33000);
+    expect(stats.perfectGamesPlayed).toBe(0);
+    expect(stats.perfectGamesTotalTimeMs).toBe(0);
+    expect(stats.fastestTimeMs).toBe(null);
+  });
+
+  it('tracks totalHints in lifetime stats', () => {
+    const hintedRounds = [
+      { answer: 'coat', timeMs: 5000, root: 'cat', possibleAnswers: ['coat'], hinted: true },
+      { answer: 'gods', timeMs: 3000, root: 'dog', possibleAnswers: ['gods'], hinted: false },
+      { answer: '', timeMs: 2000, root: 'pen', possibleAnswers: ['pine'], hinted: true },
+    ];
+    const stats = updateLifetimeStats(null, hintedRounds, 30000);
+    expect(stats.totalHints).toBe(2);
+  });
+
+  it('accumulates totalHints across games', () => {
+    const existing = {
+      totalLetters: 20, totalWords: 5, fastestTimeMs: 30000,
+      totalTimeMs: 60000, gamesPlayed: 2, bestLetterScore: 15,
+      longestWord: 'strange', totalSkips: 0, totalHints: 3,
+      perfectGamesPlayed: 1, perfectGamesTotalTimeMs: 30000,
+    };
+    const hintedRounds = [
+      { answer: 'coat', timeMs: 5000, root: 'cat', possibleAnswers: ['coat'], hinted: true },
+      { answer: 'gods', timeMs: 3000, root: 'dog', possibleAnswers: ['gods'] },
+    ];
+    const stats = updateLifetimeStats(existing, hintedRounds, 30000);
+    expect(stats.totalHints).toBe(4);
+  });
+});
+
+describe('getHintLetter', () => {
+  it('returns an offered letter that is in commonKeys', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['coat', 'taco'], r: ['cart'], z: ['catz'] },
+      offeredLetters: ['o', 'r', 'z'],
+      commonKeys: ['o'],
+      commonWords: ['coat'],
+    };
+    expect(getHintLetter(round)).toBe('o');
+  });
+
+  it('prefers the commonKey offered letter with the most common word answers', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['coat', 'taco'], r: ['cart'], s: ['cast', 'acts', 'scat'] },
+      offeredLetters: ['o', 'r', 's'],
+      commonKeys: ['o', 's'],
+      commonWords: ['coat', 'cast', 'acts'],
+    };
+    // 's' has 2 common words (cast, acts), 'o' has 1 (coat)
+    expect(getHintLetter(round)).toBe('s');
+  });
+
+  it('falls back to offered letter with most total answers when no commonKeys match', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['coat', 'taco'], r: ['cart'] },
+      offeredLetters: ['o', 'r', 'z'],
+      commonKeys: ['x'],
+      commonWords: [],
+    };
+    // 'o' has 2 answers, 'r' has 1, 'z' has 0
+    expect(getHintLetter(round)).toBe('o');
+  });
+
+  it('falls back when commonKeys is missing', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['coat', 'taco'], r: ['cart'] },
+      offeredLetters: ['o', 'r', 'z'],
+    };
+    expect(getHintLetter(round)).toBe('o');
+  });
+
+  it('returns null when no offered letter leads to any valid answer', () => {
+    const round = {
+      root: 'cat',
+      expansions: { x: ['catx'] },
+      offeredLetters: ['o', 'r', 'z'],
+      commonKeys: [],
+      commonWords: [],
+    };
+    expect(getHintLetter(round)).toBe(null);
   });
 });

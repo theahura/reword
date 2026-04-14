@@ -19,10 +19,10 @@ Path: @/scripts
 ### Core Implementation
 
 - **Pipeline order**: download TWL06 dictionary -> download 50K common words -> `buildPuzzleData` -> `filterByCommonWords` -> `trimPuzzleData` -> write JSON
-- `buildPuzzleData` iterates root word lengths 3-8. For each root in the dictionary, it finds all valid expansions (anagram words formed by adding letters). Roots with fewer than 3 expansion letter-groups are dropped. The `maxExtra` letters allowed decreases as root length increases (3 extra for roots <= 5 letters, 2 for 6, 1 for 7-8).
+- `buildPuzzleData` (exported for testability) iterates root word lengths 3-8. For each root in the dictionary, it finds all valid expansions (anagram words formed by adding letters). Roots with fewer than 3 expansion letter-groups are dropped. `maxExtra` is a uniform `3` for all root lengths -- this matches the game's runtime behavior of always offering 3 letters to the player, ensuring that words requiring all 3 offered letters are discoverable.
 - `filterByCommonWords` drops any root whose expansion words contain zero words from the 50K common word set. For surviving roots, it annotates each entry with two fields: a `commonKeys` array (which expansion keys have at least one common word) and a `commonWords` array (the actual common words across all expansions). These enable the runtime in `@/src/game.js` to bias letter selection (`commonKeys`) and sort answer lists with common words first (`commonWords`).
 - `trimPuzzleData` caps roots at 500 per length (preferring roots with more single-letter expansions) and caps words per expansion key at 5. It preserves `root`, `expansions`, `commonKeys`, and `commonWords` from each entry.
-- The script auto-detects whether it was invoked directly via `process.argv[1]` matching the file URL, so the exported functions (`filterByCommonWords`, `trimPuzzleData`) can be imported in tests without triggering the main pipeline.
+- The script auto-detects whether it was invoked directly via `process.argv[1]` matching the file URL, so the exported functions (`buildPuzzleData`, `filterByCommonWords`, `trimPuzzleData`) can be imported in tests without triggering the main pipeline.
 
 ### Things to Know
 

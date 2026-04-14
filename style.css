@@ -150,12 +150,6 @@ header h1 {
 
 .tile.offered {
   border-color: #565758;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.tile.offered:hover {
-  transform: scale(1.05);
 }
 
 .tile.used {
@@ -198,6 +192,23 @@ header h1 {
   justify-content: center;
   flex-wrap: wrap;
   margin: 8px 0;
+}
+
+.tile-rack .tile:not(.used) {
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.tile-rack .tile:not(.used):hover {
+  transform: scale(1.05);
+}
+
+#input-area .tile:not(.empty) {
+  cursor: pointer;
+}
+
+#input-area .tile:not(.empty):hover {
+  transform: scale(1.05);
 }
 
 /* Sections */

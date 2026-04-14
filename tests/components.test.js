@@ -51,6 +51,14 @@ describe('TileRack', () => {
     const tiles = wrapper.findAll('.tile');
     tiles.forEach(tile => expect(tile.classes()).toContain('offered'));
   });
+
+  it('emits tile-click with letter and index when a tile is clicked', async () => {
+    const wrapper = mount(TileRack, { props: { letters: ['a', 'b', 'c'] } });
+    const tiles = wrapper.findAll('.tile');
+    await tiles[1].trigger('click');
+    expect(wrapper.emitted('tile-click')).toBeTruthy();
+    expect(wrapper.emitted('tile-click')[0]).toEqual(['b', 1]);
+  });
 });
 
 describe('VirtualKeyboard', () => {
@@ -453,6 +461,50 @@ describe('GameBoard', () => {
     tiles.forEach((tile, i) => {
       expect(tile.attributes('style')).toContain(`--tile-index: ${i}`);
     });
+  });
+
+  it('emits tile-click with letter when a root tile is clicked', async () => {
+    const wrapper = mount(GameBoard, {
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '' },
+    });
+    const rootRack = wrapper.findAll('.tile-rack')[0];
+    const tiles = rootRack.findAll('.tile');
+    await tiles[0].trigger('click');
+    expect(wrapper.emitted('tile-click')).toBeTruthy();
+    expect(wrapper.emitted('tile-click')[0][0]).toBe('c');
+  });
+
+  it('emits tile-click with letter when an offered tile is clicked', async () => {
+    const wrapper = mount(GameBoard, {
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '' },
+    });
+    const offeredRack = wrapper.findAll('.tile-rack')[1];
+    const tiles = offeredRack.findAll('.tile');
+    await tiles[1].trigger('click');
+    expect(wrapper.emitted('tile-click')).toBeTruthy();
+    expect(wrapper.emitted('tile-click')[0][0]).toBe('r');
+  });
+
+  it('emits input-tile-click with index when a filled input tile is clicked', async () => {
+    const wrapper = mount(GameBoard, {
+      props: { round, roundNumber: 1, inputLetters: ['c', 'o'], message: '', messageType: '' },
+    });
+    const inputArea = wrapper.find('#input-area');
+    const tiles = inputArea.findAll('.tile');
+    await tiles[1].trigger('click');
+    expect(wrapper.emitted('input-tile-click')).toBeTruthy();
+    expect(wrapper.emitted('input-tile-click')[0][0]).toBe(1);
+  });
+
+  it('does not emit input-tile-click when an empty input tile is clicked', async () => {
+    const wrapper = mount(GameBoard, {
+      props: { round, roundNumber: 1, inputLetters: ['c'], message: '', messageType: '' },
+    });
+    const inputArea = wrapper.find('#input-area');
+    const tiles = inputArea.findAll('.tile');
+    // Click the last tile which should be empty (display length is at least root.length + 1 = 4)
+    await tiles[tiles.length - 1].trigger('click');
+    expect(wrapper.emitted('input-tile-click')).toBeFalsy();
   });
 });
 

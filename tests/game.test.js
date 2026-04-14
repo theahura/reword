@@ -16,6 +16,7 @@ import {
   formatCountdown,
   getTimeUntilMidnightUTC,
   getHintLetter,
+  removeLetterAt,
 } from '../src/game.js';
 
 // Minimal puzzle data for testing
@@ -688,6 +689,16 @@ describe('processKeyPress', () => {
     expect(processKeyPress(['a'], 'Shift', 5)).toEqual(['a']);
     expect(processKeyPress(['a'], ' ', 5)).toEqual(['a']);
     expect(processKeyPress(['a'], 'Enter', 5)).toEqual(['a']);
+  });
+});
+
+describe('removeLetterAt', () => {
+  it('removes the letter at the given index', () => {
+    expect(removeLetterAt(['a', 'b', 'c'], 1)).toEqual(['a', 'c']);
+  });
+
+  it('returns empty array when removing from single-element array', () => {
+    expect(removeLetterAt(['a'], 0)).toEqual([]);
   });
 });
 

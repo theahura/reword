@@ -227,6 +227,10 @@ export function updateStreakStats(existingStats, todayDateStr) {
   };
 }
 
+export function removeLetterAt(letters, index) {
+  return [...letters.slice(0, index), ...letters.slice(index + 1)];
+}
+
 export function processKeyPress(currentLetters, key, maxLen) {
   if (key === 'Backspace') return currentLetters.slice(0, -1);
   if (key.length === 1 && /^[a-z]$/i.test(key)) {

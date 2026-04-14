@@ -26,6 +26,8 @@
           :hint-index="hintIndex"
           @submit="handleSubmit"
           @skip="handleSkip"
+          @tile-click="handleKeyInput"
+          @input-tile-click="handleInputTileClick"
         >
           <template #timer>
             <span id="letter-score">Letters: {{ runningLetterScore }}</span>
@@ -61,7 +63,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
-import { selectDailyPuzzle, isValidAnswer, calculateScore, getAnswersForRound, generateShareText, getSubmitFeedbackType, updateStreakStats, updateLifetimeStats, processKeyPress, getHintLetter } from '../game.js';
+import { selectDailyPuzzle, isValidAnswer, calculateScore, getAnswersForRound, generateShareText, getSubmitFeedbackType, updateStreakStats, updateLifetimeStats, processKeyPress, removeLetterAt, getHintLetter } from '../game.js';
 import { getAudioContext, initSound } from '../sound.js';
 import { trackEvent } from '../analytics.js';
 import GameBoard from './GameBoard.vue';
@@ -341,6 +343,16 @@ function handleKeyInput(key) {
   const prevLen = state.inputLetters.length;
   state.inputLetters = processKeyPress(state.inputLetters, key, maxLen);
   if (state.inputLetters.length !== prevLen) playSound('playKeyClick');
+  message.value = '';
+  messageType.value = '';
+}
+
+function handleInputTileClick(index) {
+  ensureAudio();
+  if (state.transitioning || state.currentRound >= 10) return;
+  if (!state.startTime) startTimer();
+  state.inputLetters = removeLetterAt(state.inputLetters, index);
+  playSound('playKeyClick');
   message.value = '';
   messageType.value = '';
 }

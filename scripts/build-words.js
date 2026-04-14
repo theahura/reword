@@ -56,7 +56,10 @@ export function filterByCommonWords(puzzleData, commonWords) {
           .filter(([, words]) => words.some(w => commonWords.has(w)))
           .map(([key]) => key);
         if (commonKeys.length === 0) return null;
-        return { ...entry, commonKeys };
+        const entryCommonWords = Object.values(entry.expansions)
+          .flat()
+          .filter(w => commonWords.has(w));
+        return { ...entry, commonKeys, commonWords: entryCommonWords };
       })
       .filter(Boolean);
   }
@@ -83,6 +86,7 @@ export function trimPuzzleData(puzzleData) {
       root: entry.root,
       expansions: { ...entry.expansions },
       commonKeys: entry.commonKeys || [],
+      commonWords: entry.commonWords || [],
     }));
 
     if (trimmedRoots.length > MAX_ROOTS_PER_LENGTH) {
@@ -100,6 +104,8 @@ export function trimPuzzleData(puzzleData) {
           entry.expansions[key] = entry.expansions[key].slice(0, MAX_WORDS_PER_KEY);
         }
       }
+      const allWords = new Set(Object.values(entry.expansions).flat());
+      entry.commonWords = entry.commonWords.filter(w => allWords.has(w));
     }
 
     result[len] = trimmedRoots;

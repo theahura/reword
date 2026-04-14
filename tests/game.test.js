@@ -336,6 +336,58 @@ describe('getAnswersForRound', () => {
     expect(answers).toContain('diner');
     expect(answers).toContain('grind');
   });
+
+  it('places common words before non-common words', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['taco', 'coat'], r: ['cart'] },
+      offeredLetters: ['o', 'r', 'z'],
+      commonWords: ['coat'],
+    };
+    const answers = getAnswersForRound(round);
+    expect(answers[0]).toBe('coat');
+    expect(answers).toContain('taco');
+    expect(answers).toContain('cart');
+  });
+
+  it('preserves order within common and non-common groups', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['taco', 'coat'], r: ['cart'], s: ['cats', 'cast', 'scat', 'acts'] },
+      offeredLetters: ['o', 'r', 's'],
+      commonWords: ['coat', 'cart'],
+    };
+    const answers = getAnswersForRound(round);
+    const coatIdx = answers.indexOf('coat');
+    const cartIdx = answers.indexOf('cart');
+    const tacoIdx = answers.indexOf('taco');
+    // Common words come before non-common words
+    expect(coatIdx).toBeLessThan(tacoIdx);
+    expect(cartIdx).toBeLessThan(tacoIdx);
+  });
+
+  it('handles missing commonWords gracefully', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['coat', 'taco'] },
+      offeredLetters: ['o', 'x', 'z'],
+    };
+    const answers = getAnswersForRound(round);
+    expect(answers).toContain('coat');
+    expect(answers).toContain('taco');
+  });
+
+  it('handles empty commonWords array', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['coat', 'taco'] },
+      offeredLetters: ['o', 'x', 'z'],
+      commonWords: [],
+    };
+    const answers = getAnswersForRound(round);
+    expect(answers).toContain('coat');
+    expect(answers).toContain('taco');
+  });
 });
 
 describe('generateShareText', () => {

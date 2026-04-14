@@ -17,7 +17,7 @@ async function downloadWordList() {
   return words;
 }
 
-function buildPuzzleData(dictionary) {
+export function buildPuzzleData(dictionary) {
   console.log('Building signature index...');
   const index = buildSignatureIndex(dictionary);
   console.log(`Index has ${index.size} signatures`);
@@ -25,8 +25,7 @@ function buildPuzzleData(dictionary) {
   const puzzleData = {};
 
   for (const rootLen of [3, 4, 5, 6, 7, 8]) {
-    // Limit extra letters: +3 for short roots, +2 for medium, +1 for long
-    const maxExtra = rootLen <= 5 ? 3 : rootLen <= 6 ? 2 : 1;
+    const maxExtra = 3;
     console.log(`Processing ${rootLen}-letter roots (max +${maxExtra} letters)...`);
     const roots = dictionary.filter(w => w.length === rootLen);
     const validRoots = [];

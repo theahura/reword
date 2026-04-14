@@ -36,10 +36,12 @@
         <span class="round-root">{{ r.root.toUpperCase() }}</span>
         <span class="round-arrow">&rarr;</span>
         <span class="round-answer">{{ r.answer.length > 0 ? r.answer.toUpperCase() : 'SKIPPED' }}</span>
+        <span class="round-spacer"></span>
         <span
-          v-if="!r.answer.length && r.possibleAnswers && r.possibleAnswers.length"
-          class="possible-answers"
-        >{{ r.possibleAnswers.join(', ') }}</span>
+          v-if="r.possibleAnswers && r.possibleAnswers.length"
+          class="more-answers-link"
+          @click="$emit('show-word-list', i)"
+        >{{ r.possibleAnswers.length }} {{ r.possibleAnswers.length === 1 ? 'word' : 'words' }} ›</span>
       </div>
     </div>
   </div>
@@ -59,7 +61,7 @@ const props = defineProps({
   timerDisabled: { type: Boolean, default: false },
 });
 
-defineEmits(['share']);
+defineEmits(['share', 'show-word-list']);
 
 const solved = props.results.filter(r => r.answer.length > 0).length;
 const score = calculateScore(props.results.filter(r => r.answer.length > 0));

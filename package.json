@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build-words": "node scripts/build-words.js"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.5",

@@ -44,6 +44,14 @@
         :lifetime-stats="lifetimeStats"
         :timer-disabled="timerDisabled"
         @share="handleShare"
+        @show-word-list="i => wordListRoundIndex = i"
+      />
+
+      <WordListModal
+        v-if="wordListRoundIndex != null"
+        :round="state.completedRounds[wordListRoundIndex]"
+        :round-index="wordListRoundIndex"
+        @close="wordListRoundIndex = null"
       />
     </template>
   </div>
@@ -58,11 +66,13 @@ import VirtualKeyboard from './VirtualKeyboard.vue';
 import ScoreScreen from './ScoreScreen.vue';
 import HowToPlay from './HowToPlay.vue';
 import LoadingScreen from './LoadingScreen.vue';
+import WordListModal from './WordListModal.vue';
 
 const loading = ref(true);
 const puzzle = ref(null);
 const dateStr = ref('');
 const showHowToPlay = ref(false);
+const wordListRoundIndex = ref(null);
 const message = ref('');
 const messageType = ref('');
 const flyUp = ref(false);
@@ -183,7 +193,7 @@ function handleSubmit() {
 
   const timeMs = Date.now() - state.roundStartTime;
   const possibleAnswers = getAnswersForRound(round);
-  state.completedRounds.push({ answer, timeMs, root: round.root, possibleAnswers });
+  state.completedRounds.push({ answer, timeMs, root: round.root, offeredLetters: round.offeredLetters, possibleAnswers });
   flyUp.value = true;
   message.value = 'Correct!';
   messageType.value = 'success';
@@ -199,7 +209,7 @@ function handleSkip() {
   const round = puzzle.value[state.currentRound];
   const timeMs = Date.now() - state.roundStartTime;
   const possibleAnswers = getAnswersForRound(round);
-  state.completedRounds.push({ answer: '', timeMs, root: round.root, possibleAnswers });
+  state.completedRounds.push({ answer: '', timeMs, root: round.root, offeredLetters: round.offeredLetters, possibleAnswers });
   playSound('playSkip');
   if (possibleAnswers.length > 0) {
     message.value = `Possible: ${possibleAnswers.slice(0, 3).join(', ')}`;
@@ -378,7 +388,10 @@ onMounted(async () => {
     const saved = localStorage.getItem('reword-' + dateStr.value) || localStorage.getItem('anagram-trainer-' + dateStr.value);
     if (saved) {
       const parsed = JSON.parse(saved);
-      state.completedRounds = parsed.results;
+      state.completedRounds = parsed.results.map((r, i) => ({
+        ...r,
+        offeredLetters: r.offeredLetters || (puzzle.value[i] && puzzle.value[i].offeredLetters) || [],
+      }));
       state.currentRound = 10;
       timerDisabled.value = !!parsed.timerDisabled;
       showScore(parsed.results);

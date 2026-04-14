@@ -828,6 +828,101 @@ header h1 {
   font-style: italic;
 }
 
+/* Word List Modal */
+.word-list-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.word-list-modal {
+  background: #1a1a1b;
+  border: 1px solid #3a3a3c;
+  border-radius: 8px;
+  padding: 32px;
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  color: #d7dadc;
+}
+
+.word-list-modal h2 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.word-list-modal .close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: #818384;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.word-list-modal .close-btn:hover {
+  color: #d7dadc;
+}
+
+.word-list-modal .section-label {
+  color: #818384;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+  margin: 16px 0 4px;
+}
+
+.modal-tile-rack {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 4px 0;
+}
+
+.modal-tile-rack .tile {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+}
+
+.modal-tile-rack .tile.offered {
+  background: #538d4e;
+  border-color: #538d4e;
+  color: #fff;
+}
+
+.word-list-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.more-answers-btn {
+  color: #538d4e;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.more-answers-btn:hover {
+  text-decoration: underline;
+}
+
 /* Streak stats */
 .streak-stats {
   border-top: 1px solid #3a3a3c;

@@ -8,6 +8,7 @@ import ScoreScreen from '../src/components/ScoreScreen.vue';
 import GameBoard from '../src/components/GameBoard.vue';
 import HowToPlay from '../src/components/HowToPlay.vue';
 import LoadingScreen from '../src/components/LoadingScreen.vue';
+import WordListModal from '../src/components/WordListModal.vue';
 import App from '../src/components/App.vue';
 
 describe('ScrabbleTile', () => {
@@ -203,6 +204,124 @@ describe('ScoreScreen', () => {
       props: { results, dateStr: '2026-04-05', totalTimeMs: 12000, timerDisabled: false },
     });
     expect(wrapper.text()).toContain('Total Time');
+  });
+
+  it('shows possible answers for solved rounds', () => {
+    const wrapper = mount(ScoreScreen, {
+      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000 },
+    });
+    // Round 1 was solved with 'coat', but 'taco' is also possible
+    const roundResults = wrapper.findAll('.round-result');
+    const solvedRound = roundResults[0];
+    expect(solvedRound.text()).toContain('taco');
+  });
+
+  it('excludes the player answer from possible answers display on solved rounds', () => {
+    const wrapper = mount(ScoreScreen, {
+      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000 },
+    });
+    const roundResults = wrapper.findAll('.round-result');
+    const solvedRound = roundResults[0];
+    // The possible-answers span should not redundantly show the player's own answer
+    const possibleSpan = solvedRound.find('.possible-answers');
+    expect(possibleSpan.text()).not.toContain('coat');
+  });
+
+  it('shows "+N more" when there are more than 3 other possible answers', () => {
+    const manyAnswersResults = [
+      {
+        answer: 'coat',
+        timeMs: 5000,
+        root: 'cat',
+        offeredLetters: ['o', 'r', 'e'],
+        possibleAnswers: ['coat', 'taco', 'cart', 'race', 'acre'],
+      },
+    ];
+    const wrapper = mount(ScoreScreen, {
+      props: { results: manyAnswersResults, dateStr: '2026-04-05', totalTimeMs: 5000 },
+    });
+    expect(wrapper.text()).toMatch(/\+\d+ more/);
+  });
+
+  it('emits show-word-list when "+N more" is clicked', async () => {
+    const manyAnswersResults = [
+      {
+        answer: 'coat',
+        timeMs: 5000,
+        root: 'cat',
+        offeredLetters: ['o', 'r', 'e'],
+        possibleAnswers: ['coat', 'taco', 'cart', 'race', 'acre'],
+      },
+    ];
+    const wrapper = mount(ScoreScreen, {
+      props: { results: manyAnswersResults, dateStr: '2026-04-05', totalTimeMs: 5000 },
+    });
+    const moreBtn = wrapper.find('.more-answers-btn');
+    await moreBtn.trigger('click');
+    expect(wrapper.emitted('show-word-list')).toBeTruthy();
+    expect(wrapper.emitted('show-word-list')[0][0]).toBe(0);
+  });
+});
+
+describe('WordListModal', () => {
+  const round = {
+    root: 'cat',
+    offeredLetters: ['o', 'r', 'z'],
+    possibleAnswers: ['coat', 'taco', 'cart'],
+  };
+
+  it('renders the root word as tiles', () => {
+    const wrapper = mount(WordListModal, {
+      props: { round, roundIndex: 0 },
+    });
+    const rootSection = wrapper.find('[data-testid="modal-root-tiles"]');
+    expect(rootSection.text()).toContain('C');
+    expect(rootSection.text()).toContain('A');
+    expect(rootSection.text()).toContain('T');
+  });
+
+  it('renders the offered letters as tiles', () => {
+    const wrapper = mount(WordListModal, {
+      props: { round, roundIndex: 0 },
+    });
+    const offeredSection = wrapper.find('[data-testid="modal-offered-tiles"]');
+    expect(offeredSection.text()).toContain('O');
+    expect(offeredSection.text()).toContain('R');
+    expect(offeredSection.text()).toContain('Z');
+  });
+
+  it('renders all possible words as tile rows', () => {
+    const wrapper = mount(WordListModal, {
+      props: { round, roundIndex: 0 },
+    });
+    const wordRows = wrapper.findAll('[data-testid="word-row"]');
+    expect(wordRows.length).toBe(3);
+  });
+
+  it('marks added letters with green tile class in word rows', () => {
+    const simpleRound = {
+      root: 'rind',
+      offeredLetters: ['e', 'x', 'z'],
+      possibleAnswers: ['diner'],
+    };
+    const wrapper = mount(WordListModal, {
+      props: { round: simpleRound, roundIndex: 0 },
+    });
+    const wordRow = wrapper.find('[data-testid="word-row"]');
+    const tiles = wordRow.findAll('.tile');
+    // 'diner' with root 'rind': letters d, i, n, e, r
+    // root letters are r, i, n, d — the 'e' is the added letter
+    // At least one tile should be green (the 'e')
+    expect(tiles.some(t => t.classes().includes('offered'))).toBe(true);
+  });
+
+  it('emits close when close button is clicked', async () => {
+    const wrapper = mount(WordListModal, {
+      props: { round, roundIndex: 0 },
+    });
+    const closeBtn = wrapper.find('[data-testid="close-word-list"]');
+    await closeBtn.trigger('click');
+    expect(wrapper.emitted('close')).toBeTruthy();
   });
 });
 

@@ -206,28 +206,7 @@ describe('ScoreScreen', () => {
     expect(wrapper.text()).toContain('Total Time');
   });
 
-  it('shows possible answers for solved rounds', () => {
-    const wrapper = mount(ScoreScreen, {
-      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000 },
-    });
-    // Round 1 was solved with 'coat', but 'taco' is also possible
-    const roundResults = wrapper.findAll('.round-result');
-    const solvedRound = roundResults[0];
-    expect(solvedRound.text()).toContain('taco');
-  });
-
-  it('excludes the player answer from possible answers display on solved rounds', () => {
-    const wrapper = mount(ScoreScreen, {
-      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000 },
-    });
-    const roundResults = wrapper.findAll('.round-result');
-    const solvedRound = roundResults[0];
-    // The possible-answers span should not redundantly show the player's own answer
-    const possibleSpan = solvedRound.find('.possible-answers');
-    expect(possibleSpan.text()).not.toContain('coat');
-  });
-
-  it('shows "+N more" when there are more than 3 other possible answers', () => {
+  it('shows a badge with total possible word count', () => {
     const manyAnswersResults = [
       {
         answer: 'coat',
@@ -240,10 +219,12 @@ describe('ScoreScreen', () => {
     const wrapper = mount(ScoreScreen, {
       props: { results: manyAnswersResults, dateStr: '2026-04-05', totalTimeMs: 5000 },
     });
-    expect(wrapper.text()).toMatch(/\+\d+ more/);
+    const badge = wrapper.find('.more-answers-badge');
+    expect(badge.exists()).toBe(true);
+    expect(badge.text()).toBe('5w');
   });
 
-  it('emits show-word-list when "+N more" is clicked', async () => {
+  it('emits show-word-list when badge is clicked', async () => {
     const manyAnswersResults = [
       {
         answer: 'coat',
@@ -256,8 +237,8 @@ describe('ScoreScreen', () => {
     const wrapper = mount(ScoreScreen, {
       props: { results: manyAnswersResults, dateStr: '2026-04-05', totalTimeMs: 5000 },
     });
-    const moreBtn = wrapper.find('.more-answers-btn');
-    await moreBtn.trigger('click');
+    const badge = wrapper.find('.more-answers-badge');
+    await badge.trigger('click');
     expect(wrapper.emitted('show-word-list')).toBeTruthy();
     expect(wrapper.emitted('show-word-list')[0][0]).toBe(0);
   });

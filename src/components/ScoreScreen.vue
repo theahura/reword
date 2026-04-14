@@ -36,14 +36,12 @@
         <span class="round-root">{{ r.root.toUpperCase() }}</span>
         <span class="round-arrow">&rarr;</span>
         <span class="round-answer">{{ r.answer.length > 0 ? r.answer.toUpperCase() : 'SKIPPED' }}</span>
+        <span class="round-spacer"></span>
         <span
-          v-if="otherAnswers(r).length"
-          class="possible-answers"
-        >{{ otherAnswers(r).slice(0, 3).join(', ') }}<span
-            v-if="otherAnswers(r).length > 3"
-            class="more-answers-btn"
-            @click="$emit('show-word-list', i)"
-          > +{{ otherAnswers(r).length - 3 }} more</span></span>
+          v-if="r.possibleAnswers && r.possibleAnswers.length"
+          class="more-answers-badge"
+          @click="$emit('show-word-list', i)"
+        >{{ r.possibleAnswers.length }}w</span>
       </div>
     </div>
   </div>
@@ -77,12 +75,6 @@ function formatTime(ms) {
   const mins = Math.floor(ms / 1000 / 60);
   const secs = Math.floor(ms / 1000) % 60;
   return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-function otherAnswers(r) {
-  if (!r.possibleAnswers || !r.possibleAnswers.length) return [];
-  if (!r.answer.length) return r.possibleAnswers;
-  return r.possibleAnswers.filter(a => a.toLowerCase() !== r.answer.toLowerCase());
 }
 
 const countdown = ref(formatCountdown(getTimeUntilMidnightUTC()));

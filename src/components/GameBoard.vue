@@ -6,10 +6,10 @@
     </div>
 
     <div class="section-label">Root Word</div>
-    <TileRack :letters="round.root.split('')" :used-indices="rootUsedIndices" />
+    <TileRack :letters="round.root.split('')" :used-indices="rootUsedIndices" @tile-click="(letter) => emit('tile-click', letter)" />
 
     <div class="section-label">Add Letters</div>
-    <TileRack :letters="round.offeredLetters" tile-class="offered" :used-indices="offeredUsedIndices" :highlighted-index="hintIndex" />
+    <TileRack :letters="round.offeredLetters" tile-class="offered" :used-indices="offeredUsedIndices" :highlighted-index="hintIndex" @tile-click="(letter) => emit('tile-click', letter)" />
 
     <div class="instructions">Type a new word using all root letters + one or more offered letters</div>
 
@@ -20,6 +20,7 @@
         :letter="letter"
         :tile-class="inputTileClass(i)"
         :style="{ '--tile-index': i }"
+        @click="i < props.inputLetters.length && emit('input-tile-click', i)"
       />
     </div>
 
@@ -51,7 +52,7 @@ const props = defineProps({
   hintIndex: { type: Number, default: null },
 });
 
-defineEmits(['submit', 'skip']);
+const emit = defineEmits(['submit', 'skip', 'tile-click', 'input-tile-click']);
 
 const minLen = computed(() => props.round.root.length + 1);
 const displayLen = computed(() => Math.max(minLen.value, props.inputLetters.length));

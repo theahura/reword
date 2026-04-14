@@ -5,12 +5,15 @@
       :key="i"
       :letter="letter"
       :tile-class="getTileClass(i)"
+      @click="emit('tile-click', letter, i)"
     />
   </div>
 </template>
 
 <script setup>
 import ScrabbleTile from './ScrabbleTile.vue';
+
+const emit = defineEmits(['tile-click']);
 
 const props = defineProps({
   letters: { type: Array, default: () => [] },

@@ -348,6 +348,25 @@ header h1 {
   overflow-y: auto;
   margin-top: 16px;
   border-top: 1px solid #3a3a3c;
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3c transparent;
+}
+
+.rounds-summary::-webkit-scrollbar {
+  width: 6px;
+}
+
+.rounds-summary::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rounds-summary::-webkit-scrollbar-thumb {
+  background: #3a3a3c;
+  border-radius: 3px;
+}
+
+.rounds-summary::-webkit-scrollbar-thumb:hover {
+  background: #538d4e;
   padding-top: 12px;
 }
 
@@ -842,16 +861,42 @@ header h1 {
   padding: 32px;
   max-width: 480px;
   width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
+  max-height: 55vh;
+  display: flex;
+  flex-direction: column;
   position: relative;
   color: #d7dadc;
+}
+
+.word-list-modal .modal-body {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3c transparent;
+}
+
+.word-list-modal .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.word-list-modal .modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.word-list-modal .modal-body::-webkit-scrollbar-thumb {
+  background: #3a3a3c;
+  border-radius: 3px;
+}
+
+.word-list-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #538d4e;
 }
 
 .word-list-modal h2 {
   text-align: center;
   font-size: 24px;
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .word-list-modal .close-btn {

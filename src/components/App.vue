@@ -6,6 +6,7 @@
       <header>
         <h1>Reword</h1>
         <button class="header-icon" @click="showHowToPlay = true" aria-label="How to play">?</button>
+        <button v-if="hintAvailable && hintIndex === null && !gameComplete" id="hint-btn" aria-label="Hint" @click="handleHint">💡</button>
         <button id="mute-btn" role="switch" :aria-checked="String(!muted)" :aria-label="'Sound'" @click="toggleMute">
           {{ muted ? '\u{1F507}' : '\u{1F50A}' }}
         </button>
@@ -23,10 +24,8 @@
           :fly-up="flyUp"
           :tiles-fading-in="tilesFadingIn"
           :hint-index="hintIndex"
-          :hint-available="hintAvailable"
           @submit="handleSubmit"
           @skip="handleSkip"
-          @hint="handleHint"
         >
           <template #timer>
             <span id="letter-score">Letters: {{ runningLetterScore }}</span>

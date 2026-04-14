@@ -474,41 +474,27 @@ header h1 {
   background: rgba(255,255,255,0.05);
 }
 
-/* Submit + Hint wrapper */
-.submit-wrapper {
-  position: relative;
-  display: block;
-  margin: 12px auto;
-  width: fit-content;
-}
-
-.submit-wrapper #submit-btn {
-  margin: 0;
-}
-
-/* Hint button — small overlay on submit */
+/* Hint button — header icon next to mute */
 #hint-btn {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  padding: 2px 6px;
-  background: #b59f3b;
+  right: 40px;
+  top: 0;
+  background: transparent;
   border: none;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 12px;
-  line-height: 1;
+  font-size: 20px;
   cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
   animation: hint-fade-in 0.5s ease-out;
 }
 
 #hint-btn:hover {
-  background: #d4b84a;
+  opacity: 1;
 }
 
 @keyframes hint-fade-in {
-  from { opacity: 0; transform: scale(0.5); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Loading */

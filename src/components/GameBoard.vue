@@ -29,10 +29,7 @@
       </Transition>
     </div>
 
-    <div class="submit-wrapper">
-      <button id="submit-btn" @click="$emit('submit')">Submit</button>
-      <button v-if="hintAvailable && hintIndex == null" id="hint-btn" @click="$emit('hint')">💡</button>
-    </div>
+    <button id="submit-btn" @click="$emit('submit')">Submit</button>
     <button id="skip-btn" @click="$emit('skip')">Skip</button>
   </div>
 </template>
@@ -52,10 +49,9 @@ const props = defineProps({
   flyUp: { type: Boolean, default: false },
   tilesFadingIn: { type: Boolean, default: false },
   hintIndex: { type: Number, default: null },
-  hintAvailable: { type: Boolean, default: false },
 });
 
-defineEmits(['submit', 'skip', 'hint']);
+defineEmits(['submit', 'skip']);
 
 const minLen = computed(() => props.round.root.length + 1);
 const displayLen = computed(() => Math.max(minLen.value, props.inputLetters.length));

@@ -65,6 +65,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { selectDailyPuzzle, isValidAnswer, calculateScore, getAnswersForRound, generateShareText, getSubmitFeedbackType, updateStreakStats, updateLifetimeStats, processKeyPress, removeLetterAt, getHintLetter } from '../game.js';
 import { getAudioContext, initSound } from '../sound.js';
+import { trackEvent } from '../analytics.js';
 import GameBoard from './GameBoard.vue';
 import VirtualKeyboard from './VirtualKeyboard.vue';
 import ScoreScreen from './ScoreScreen.vue';
@@ -205,6 +206,7 @@ function handleSubmit() {
   const timeMs = Date.now() - state.roundStartTime;
   const possibleAnswers = getAnswersForRound(round);
   state.completedRounds.push({ answer, timeMs, root: round.root, offeredLetters: round.offeredLetters, possibleAnswers, hinted: hintIndex.value !== null });
+  trackEvent('round_complete', { round: state.currentRound + 1, answer_length: answer.length, time_ms: timeMs });
   flyUp.value = true;
   message.value = 'Correct!';
   messageType.value = 'success';
@@ -224,6 +226,7 @@ function handleHint() {
   const idx = round.offeredLetters.indexOf(letter);
   if (idx === -1) return;
   hintIndex.value = idx;
+  trackEvent('hint_used', { round: state.currentRound + 1 });
   playSound('playHint');
 }
 
@@ -235,6 +238,7 @@ function handleSkip() {
   const timeMs = Date.now() - state.roundStartTime;
   const possibleAnswers = getAnswersForRound(round);
   state.completedRounds.push({ answer: '', timeMs, root: round.root, offeredLetters: round.offeredLetters, possibleAnswers, hinted: hintIndex.value !== null });
+  trackEvent('round_skip', { round: state.currentRound + 1 });
   playSound('playSkip');
   if (possibleAnswers.length > 0) {
     message.value = `Possible: ${possibleAnswers.slice(0, 3).join(', ')}`;
@@ -282,6 +286,11 @@ function showScore(savedResults) {
   } else {
     totalTimeMs.value = Date.now() - state.startTime;
     playSound('playGameComplete');
+    trackEvent('game_complete', {
+      letter_score: runningLetterScore.value,
+      total_time_ms: totalTimeMs.value,
+      timer_disabled: timerDisabled.value,
+    });
   }
 
   if (!savedResults && dateStr.value) {
@@ -352,6 +361,7 @@ const shareButtonText = ref('Share Results');
 
 async function handleShare() {
   const results = state.completedRounds;
+  trackEvent('share_results');
   const shareText = generateShareText(results, dateStr.value, totalTimeMs.value, timerDisabled.value);
   try {
     if (navigator.clipboard) {

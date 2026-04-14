@@ -5,14 +5,15 @@ Path: @/src
 ### Overview
 
 - Core application source for the Reword daily word puzzle game, a Vue 3 single-page app
-- Contains game logic (pure functions), audio, PRNG, UI utilities, and all Vue components
-- Entry point is `main.js` which mounts the Vue app; all game rules live in `game.js`
+- Contains game logic (pure functions), audio, analytics, PRNG, UI utilities, and all Vue components
+- Entry point is `main.js` which initializes GA4 analytics and mounts the Vue app; all game rules live in `game.js`
 
 ### How it fits into the larger codebase
 
 - `main.js` mounts the root Vue component from `@/src/components/App.vue`
 - `game.js` is the central logic module, imported by both components and `@/tests/` -- it owns puzzle selection, answer validation, tile matching, scoring, streak/lifetime stats, and share text generation
 - `prng.js` provides a seeded PRNG (used by `game.js` to deterministically select daily puzzles and offered letters from `@/data/puzzles.json`)
+- `analytics.js` is a thin system-boundary wrapper around GA4's `gtag.js`. It exports `initGA(measurementId)` (called once by `main.js`) and `trackEvent(eventName, params)` (called by `App.vue` at game events). The module gracefully no-ops when GA is not initialized, so all callers can invoke `trackEvent` unconditionally.
 - `sound.js` and `ui.js` are browser-side utilities consumed only by components
 - `@/style.css` at the project root contains all CSS, including component-specific styles (no scoped styles in `.vue` files)
 - `@/tests/components.test.js` tests both the pure game logic and the Vue components
@@ -35,5 +36,6 @@ Path: @/src
 - The `expansions` map keys are letter combinations (e.g., "e", "el"), not full words -- `isKeySubsetOfOffered()` checks if the key's letters are all present in the offered set
 - The `commonKeys` and `commonWords` fields from puzzle data are used both at puzzle generation time (for biasing offered letters) and at runtime (for hint selection via `getHintLetter`). These fields are optional; code falls back gracefully when they are absent.
 - Timer gives 70s on touch devices vs 60s on pointer devices, detected once via `matchMedia` at module load
+- `analytics.js` uses `window.dataLayer.push(arguments)` (not spread) as the boundary contract with GA4's `gtag.js`. The gtag.js script is loaded asynchronously via a `<script async>` tag in `@/index.html` with the measurement ID `G-B61TJ0H3MM` hardcoded (it is inherently public). `initGA` is called before `createApp()` in `main.js`.
 
 Created and maintained by Nori.

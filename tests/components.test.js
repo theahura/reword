@@ -413,7 +413,7 @@ describe('GameBoard', () => {
 
   it('renders a hint button that emits hint event when clicked', async () => {
     const wrapper = mount(GameBoard, {
-      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '' },
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '', hintAvailable: true },
     });
     const hintBtn = wrapper.find('#hint-btn');
     expect(hintBtn.exists()).toBe(true);
@@ -423,14 +423,21 @@ describe('GameBoard', () => {
 
   it('hides hint button when hintIndex is set', () => {
     const wrapper = mount(GameBoard, {
-      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '', hintIndex: 0 },
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '', hintAvailable: true, hintIndex: 0 },
+    });
+    expect(wrapper.find('#hint-btn').exists()).toBe(false);
+  });
+
+  it('hides hint button when hintAvailable is false', () => {
+    const wrapper = mount(GameBoard, {
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '', hintAvailable: false },
     });
     expect(wrapper.find('#hint-btn').exists()).toBe(false);
   });
 
   it('applies highlighted class to the correct offered tile when hintIndex is set', () => {
     const wrapper = mount(GameBoard, {
-      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '', hintIndex: 1 },
+      props: { round, roundNumber: 1, inputLetters: [], message: '', messageType: '', hintAvailable: true, hintIndex: 1 },
     });
     // The offered TileRack is the second tile-rack
     const offeredRack = wrapper.findAll('.tile-rack')[1];

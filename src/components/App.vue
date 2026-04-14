@@ -23,6 +23,7 @@
           :fly-up="flyUp"
           :tiles-fading-in="tilesFadingIn"
           :hint-index="hintIndex"
+          :hint-available="hintAvailable"
           @submit="handleSubmit"
           @skip="handleSkip"
           @hint="handleHint"
@@ -99,6 +100,7 @@ const ROUND_TIME_MS = window.matchMedia('(pointer: coarse)').matches ? 70000 : 6
 const timerDisplay = ref(formatRoundTime(ROUND_TIME_MS));
 const timerWarning = ref(false);
 const hintIndex = ref(null);
+const hintAvailable = ref(false);
 
 function formatRoundTime(ms) {
   const seconds = Math.max(0, Math.ceil(ms / 1000));
@@ -149,14 +151,19 @@ const lifetimeStats = ref(null);
 function startTimer() {
   if (!state.startTime) state.startTime = Date.now();
   state.roundStartTime = Date.now();
-  if (timerDisabled.value) return;
+  if (timerDisabled.value) {
+    hintAvailable.value = true;
+    return;
+  }
   state.roundDeadline = Date.now() + ROUND_TIME_MS;
   timerWarning.value = false;
+  hintAvailable.value = false;
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     const remaining = state.roundDeadline - Date.now();
     timerDisplay.value = formatRoundTime(remaining);
     timerWarning.value = remaining <= 10000;
+    if (!hintAvailable.value && remaining <= 30000) hintAvailable.value = true;
     if (remaining <= 0) {
       handleSkip();
     }

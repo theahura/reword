@@ -474,23 +474,41 @@ header h1 {
   background: rgba(255,255,255,0.05);
 }
 
-/* Hint button */
-#hint-btn {
+/* Submit + Hint wrapper */
+.submit-wrapper {
+  position: relative;
   display: block;
-  margin: 8px auto;
-  padding: 8px 20px;
-  background: transparent;
-  border: 1px solid #b59f3b;
-  border-radius: 4px;
-  color: #b59f3b;
+  margin: 12px auto;
+  width: fit-content;
+}
+
+.submit-wrapper #submit-btn {
+  margin: 0;
+}
+
+/* Hint button — small overlay on submit */
+#hint-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  padding: 2px 6px;
+  background: #b59f3b;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
   font-size: 12px;
+  line-height: 1;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  animation: hint-fade-in 0.5s ease-out;
 }
 
 #hint-btn:hover {
-  background: rgba(181, 159, 59, 0.1);
+  background: #d4b84a;
+}
+
+@keyframes hint-fade-in {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* Loading */

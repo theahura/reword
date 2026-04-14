@@ -27,6 +27,7 @@ Path: @/data
   ```
 - Expansion keys represent the sorted extra letters added to the root. Single-character keys mean one letter was added; multi-character keys (e.g., `"el"`) mean multiple letters were added.
 - Capped at 500 roots per length and 5 words per expansion key.
+- Each entry also includes a `commonKeys` array listing which expansion keys contain at least one word from the top 50K common English words. This is produced by `filterByCommonWords` and preserved through `trimPuzzleData`. The runtime `getOfferedLetters()` in `@/src/game.js` uses `commonKeys` to bias letter selection toward common word answers.
 
 ### Things to Know
 

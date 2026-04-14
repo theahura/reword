@@ -97,6 +97,14 @@ describe('trimPuzzleData', () => {
     }
   });
 
+  it('preserves commonKeys through trimming', () => {
+    const puzzleData = {
+      3: [{ root: 'test', expansions: { a: ['wa'], b: ['wb'] }, commonKeys: ['a'] }],
+    };
+    const trimmed = trimPuzzleData(puzzleData);
+    expect(trimmed['3'][0].commonKeys).toEqual(['a']);
+  });
+
   it('limits the number of words returned for each expansion key', () => {
     const manyWords = Array.from({ length: 20 }, (_, i) => 'w' + i);
     const puzzleData = { 3: [{ root: 'test', expansions: { a: manyWords } }] };
@@ -165,6 +173,40 @@ describe('filterByCommonWords', () => {
     expect(filtered[3][0].expansions.s).toContain('acts');
     expect(filtered[3][0].expansions.o).toHaveLength(2);
     expect(filtered[3][0].expansions.o).toContain('taco');
+  });
+
+  it('adds commonKeys listing expansion keys that contain common words', () => {
+    const commonWords = new Set(['cats', 'cart']);
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: {
+          s: ['cats', 'cast', 'scat', 'acts'],
+          o: ['coat', 'taco'],
+          r: ['cart'],
+        },
+      }],
+    };
+
+    const filtered = filterByCommonWords(puzzleData, commonWords);
+    expect(filtered[3][0].commonKeys).toEqual(expect.arrayContaining(['s', 'r']));
+    expect(filtered[3][0].commonKeys).not.toContain('o');
+  });
+
+  it('includes multi-letter keys in commonKeys when they have common words', () => {
+    const commonWords = new Set(['cleat']);
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: {
+          o: ['coat', 'taco'],
+          el: ['cleat', 'eclat'],
+        },
+      }],
+    };
+
+    const filtered = filterByCommonWords(puzzleData, commonWords);
+    expect(filtered[3][0].commonKeys).toEqual(['el']);
   });
 
   it('works across multiple root lengths', () => {

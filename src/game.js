@@ -79,12 +79,22 @@ export function getOfferedLetters(puzzleEntry, rng) {
   const validLetters = [...new Set(Object.keys(puzzleEntry.expansions).join('').split(''))];
   const letters = new Set();
 
-  // Always include at least one valid single-letter expansion if available
-  const singleLetterKeys = Object.keys(puzzleEntry.expansions).filter(k => k.length === 1);
-  if (singleLetterKeys.length > 0) {
-    letters.add(seededPick(singleLetterKeys, rng));
+  // Prefer a letter that leads to a common word (top 50k)
+  const commonKeys = puzzleEntry.commonKeys || [];
+  const commonSingleKeys = commonKeys.filter(k => k.length === 1);
+  if (commonSingleKeys.length > 0) {
+    letters.add(seededPick(commonSingleKeys, rng));
+  } else if (commonKeys.length > 0) {
+    const commonLetters = [...new Set(commonKeys.join('').split(''))];
+    letters.add(seededPick(commonLetters, rng));
   } else {
-    letters.add(seededPick(validLetters, rng));
+    // Fallback for data without commonKeys
+    const singleLetterKeys = Object.keys(puzzleEntry.expansions).filter(k => k.length === 1);
+    if (singleLetterKeys.length > 0) {
+      letters.add(seededPick(singleLetterKeys, rng));
+    } else {
+      letters.add(seededPick(validLetters, rng));
+    }
   }
 
   // Build pool of remaining candidates: other valid letters + alphabet

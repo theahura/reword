@@ -231,6 +231,38 @@ describe('getOfferedLetters', () => {
     const hasValid = letters.some(l => validLetters.includes(l));
     expect(hasValid).toBe(true);
   });
+
+  it('guarantees at least one letter from commonKeys when present', () => {
+    const puzzleEntry = {
+      root: 'cat',
+      expansions: { o: ['coat', 'taco'], r: ['cart'], s: ['cats', 'cast'] },
+      commonKeys: ['r'],
+    };
+    // Run with multiple RNG values to verify the guarantee holds
+    for (let i = 0; i < 10; i++) {
+      let callCount = 0;
+      const rng = () => { callCount++; return (callCount * 0.1) % 1; };
+      const letters = getOfferedLetters(puzzleEntry, rng);
+      expect(letters).toContain('r');
+    }
+  });
+
+  it('picks a constituent letter from multi-letter commonKeys', () => {
+    const puzzleEntry = {
+      root: 'cat',
+      expansions: { el: ['cleat', 'eclat'] },
+      commonKeys: ['el'],
+    };
+    // With only multi-letter common keys, should pick one of 'e' or 'l'
+    for (let i = 0; i < 10; i++) {
+      let callCount = 0;
+      const rng = () => { callCount++; return (callCount * 0.1) % 1; };
+      const letters = getOfferedLetters(puzzleEntry, rng);
+      const hasCommonLetter = letters.includes('e') || letters.includes('l');
+      expect(hasCommonLetter).toBe(true);
+    }
+  });
+
 });
 
 describe('getAnswersForRound', () => {

@@ -50,10 +50,15 @@ function buildPuzzleData(dictionary) {
 export function filterByCommonWords(puzzleData, commonWords) {
   const result = {};
   for (const [len, roots] of Object.entries(puzzleData)) {
-    result[len] = roots.filter(entry => {
-      const allWords = Object.values(entry.expansions).flat();
-      return allWords.some(w => commonWords.has(w));
-    });
+    result[len] = roots
+      .map(entry => {
+        const commonKeys = Object.entries(entry.expansions)
+          .filter(([, words]) => words.some(w => commonWords.has(w)))
+          .map(([key]) => key);
+        if (commonKeys.length === 0) return null;
+        return { ...entry, commonKeys };
+      })
+      .filter(Boolean);
   }
   return result;
 }
@@ -77,6 +82,7 @@ export function trimPuzzleData(puzzleData) {
     let trimmedRoots = roots.map(entry => ({
       root: entry.root,
       expansions: { ...entry.expansions },
+      commonKeys: entry.commonKeys || [],
     }));
 
     if (trimmedRoots.length > MAX_ROOTS_PER_LENGTH) {

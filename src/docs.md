@@ -27,7 +27,7 @@ Path: @/src
 
 ### Things to Know
 
-- `offeredLetters` is always exactly 3 letters, generated from expansion keys plus random alphabet fill, with at least one guaranteed valid expansion letter
+- `offeredLetters` is always exactly 3 letters, generated from expansion keys plus random alphabet fill. `getOfferedLetters()` uses a priority hierarchy for the first letter: (1) a single-letter key from `commonKeys` (expansion keys leading to common words), (2) any letter extracted from multi-letter common keys, (3) fallback to any valid expansion key if `commonKeys` is absent or empty. The `commonKeys` field is expected to come from the puzzle data; if absent, the function falls back to the pre-existing behavior of picking any valid expansion letter.
 - Trivial suffix filtering (`isTrivialSuffix`) applies to both answer validation and possible answer listing -- words like "cats" for root "cat" are excluded everywhere
 - The `expansions` map keys are letter combinations (e.g., "e", "el"), not full words -- `isKeySubsetOfOffered()` checks if the key's letters are all present in the offered set
 - Timer gives 70s on touch devices vs 60s on pointer devices, detected once via `matchMedia` at module load

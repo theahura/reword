@@ -39,9 +39,9 @@
         <span class="round-spacer"></span>
         <span
           v-if="r.possibleAnswers && r.possibleAnswers.length"
-          class="more-answers-badge"
+          class="more-answers-link"
           @click="$emit('show-word-list', i)"
-        >{{ r.possibleAnswers.length }}w</span>
+        >{{ r.possibleAnswers.length }} {{ r.possibleAnswers.length === 1 ? 'word' : 'words' }} ›</span>
       </div>
     </div>
   </div>

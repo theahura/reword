@@ -206,7 +206,7 @@ describe('ScoreScreen', () => {
     expect(wrapper.text()).toContain('Total Time');
   });
 
-  it('shows a badge with total possible word count', () => {
+  it('shows a word count link for rounds with possible answers', () => {
     const manyAnswersResults = [
       {
         answer: 'coat',
@@ -219,12 +219,12 @@ describe('ScoreScreen', () => {
     const wrapper = mount(ScoreScreen, {
       props: { results: manyAnswersResults, dateStr: '2026-04-05', totalTimeMs: 5000 },
     });
-    const badge = wrapper.find('.more-answers-badge');
-    expect(badge.exists()).toBe(true);
-    expect(badge.text()).toBe('5w');
+    const link = wrapper.find('.more-answers-link');
+    expect(link.exists()).toBe(true);
+    expect(link.text()).toBe('5 words ›');
   });
 
-  it('emits show-word-list when badge is clicked', async () => {
+  it('emits show-word-list when word count link is clicked', async () => {
     const manyAnswersResults = [
       {
         answer: 'coat',
@@ -237,8 +237,8 @@ describe('ScoreScreen', () => {
     const wrapper = mount(ScoreScreen, {
       props: { results: manyAnswersResults, dateStr: '2026-04-05', totalTimeMs: 5000 },
     });
-    const badge = wrapper.find('.more-answers-badge');
-    await badge.trigger('click');
+    const link = wrapper.find('.more-answers-link');
+    await link.trigger('click');
     expect(wrapper.emitted('show-word-list')).toBeTruthy();
     expect(wrapper.emitted('show-word-list')[0][0]).toBe(0);
   });

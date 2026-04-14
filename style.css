@@ -355,11 +355,14 @@ header h1 {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 8px;
-  border-radius: 4px;
-  margin: 4px 0;
+  padding: 8px 8px;
   font-size: 14px;
   flex-wrap: wrap;
+  border-bottom: 1px solid #222224;
+}
+
+.round-result:last-child {
+  border-bottom: none;
 }
 
 .round-result.solved {
@@ -903,25 +906,14 @@ header h1 {
   margin-top: 8px;
 }
 
-.more-answers-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 11px;
-  background: #538d4e;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
+.more-answers-link {
+  font-size: 14px;
+  color: #818384;
   cursor: pointer;
-  margin-left: 6px;
-  vertical-align: middle;
 }
 
-.more-answers-badge:hover {
-  background: #6aaf5e;
+.more-answers-link:hover {
+  color: #538d4e;
 }
 
 /* Streak stats */

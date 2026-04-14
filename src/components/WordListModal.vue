@@ -3,42 +3,44 @@
     <div class="word-list-modal">
       <button data-testid="close-word-list" class="close-btn" @click="$emit('close')">&times;</button>
       <h2>Round {{ roundIndex + 1 }}</h2>
-      <div class="modal-section">
-        <div class="section-label">Root Word</div>
-        <div data-testid="modal-root-tiles" class="modal-tile-rack">
-          <ScrabbleTile
-            v-for="(letter, i) in round.root.split('')"
-            :key="'root-' + i"
-            :letter="letter"
-          />
-        </div>
-      </div>
-      <div class="modal-section">
-        <div class="section-label">Offered Letters</div>
-        <div data-testid="modal-offered-tiles" class="modal-tile-rack">
-          <ScrabbleTile
-            v-for="(letter, i) in round.offeredLetters"
-            :key="'offered-' + i"
-            :letter="letter"
-            tile-class="offered"
-          />
-        </div>
-      </div>
-      <div class="modal-section">
-        <div class="section-label">Possible Words ({{ round.possibleAnswers.length }})</div>
-        <div class="word-list-grid">
-          <div
-            v-for="(word, wi) in round.possibleAnswers"
-            :key="wi"
-            data-testid="word-row"
-            class="modal-tile-rack word-row"
-          >
+      <div class="modal-body">
+        <div class="modal-section">
+          <div class="section-label">Root Word</div>
+          <div data-testid="modal-root-tiles" class="modal-tile-rack">
             <ScrabbleTile
-              v-for="(tile, ti) in getTileClasses(word)"
-              :key="ti"
-              :letter="tile.letter"
-              :tile-class="tile.source === 'offered' ? 'offered' : ''"
+              v-for="(letter, i) in round.root.split('')"
+              :key="'root-' + i"
+              :letter="letter"
             />
+          </div>
+        </div>
+        <div class="modal-section">
+          <div class="section-label">Offered Letters</div>
+          <div data-testid="modal-offered-tiles" class="modal-tile-rack">
+            <ScrabbleTile
+              v-for="(letter, i) in round.offeredLetters"
+              :key="'offered-' + i"
+              :letter="letter"
+              tile-class="offered"
+            />
+          </div>
+        </div>
+        <div class="modal-section">
+          <div class="section-label">Possible Words ({{ round.possibleAnswers.length }})</div>
+          <div class="word-list-grid">
+            <div
+              v-for="(word, wi) in round.possibleAnswers"
+              :key="wi"
+              data-testid="word-row"
+              class="modal-tile-rack word-row"
+            >
+              <ScrabbleTile
+                v-for="(tile, ti) in getTileClasses(word)"
+                :key="ti"
+                :letter="tile.letter"
+                :tile-class="tile.source === 'offered' ? 'offered' : ''"
+              />
+            </div>
           </div>
         </div>
       </div>

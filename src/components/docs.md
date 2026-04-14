@@ -23,7 +23,7 @@ Path: @/src/components
 
 - **ScoreScreen.vue** -- Receives `results` (the `completedRounds` array) as a prop. Displays stats, streak info, lifetime stats, countdown to next puzzle, share button, and a per-round summary. For each round, `otherAnswers()` filters the player's own answer out of `possibleAnswers` and displays up to 3 inline. A "+N more" button emits `show-word-list` with the round index.
 
-- **WordListModal.vue** -- Overlay modal opened when the user clicks "+N more" on any round in `ScoreScreen`. Receives a single `round` object (from `completedRounds`) and `roundIndex`. Displays root word tiles, offered letter tiles (green), and all possible words as tile rows. Uses `matchTypedToTiles()` from `@/src/game.js` to determine which letters in each word came from root vs offered pool, applying green styling to offered-source tiles.
+- **WordListModal.vue** -- Overlay modal opened when the user clicks "+N more" on any round in `ScoreScreen`. Receives a single `round` object (from `completedRounds`) and `roundIndex`. The modal has a fixed header (close button + h2 title) and a scrollable `.modal-body` div that wraps the three content sections (root word tiles, offered letter tiles, and possible word rows). The body scrolls independently via `overflow-y: auto` with `max-height: calc(80vh - 120px)`, keeping the header pinned. Uses `matchTypedToTiles()` from `@/src/game.js` to determine which letters in each word came from root vs offered pool, applying green styling to offered-source tiles.
 
 - **ScrabbleTile.vue** -- Renders a single letter tile. Accepts `letter` and optional `tile-class` prop. Used by `GameBoard`, `TileRack`, and `WordListModal`.
 

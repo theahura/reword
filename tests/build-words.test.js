@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { letterSignature, findExpansions } from '../src/words.js';
-import { trimPuzzleData, filterByCommonWords } from '../scripts/build-words.js';
+import { buildPuzzleData, trimPuzzleData, filterByCommonWords } from '../scripts/build-words.js';
 
 const testDictionary = [
   'at', 'bat', 'cat', 'sat', 'tab', 'act',
@@ -13,6 +13,8 @@ const testDictionary = [
   'grinder',  // rind + e,g,r
   'risk', 'irks', 'kirs', 'kris',  // ski + r (regression test)
   'ski',
+  // 6-letter root + 3 extra letters test words
+  'trones', 'trombones',  // trones + b,m,o -> trombones
 ];
 
 describe('letterSignature', () => {
@@ -71,6 +73,38 @@ describe('findExpansions with multi-letter support', () => {
     expect(expansions['r']).toContain('irks');
     expect(expansions['r']).toContain('kirs');
     expect(expansions['r']).toContain('kris');
+  });
+});
+
+describe('findExpansions with 6-letter roots', () => {
+  it('finds words requiring 3 extra letters for 6-letter roots when maxExtra is 3', () => {
+    const expansions = findExpansions('trones', testDictionary, 3);
+    // 'trombones' = trones + b,m,o (sorted key: "bmo")
+    expect(expansions).toHaveProperty('bmo');
+    expect(expansions['bmo']).toContain('trombones');
+  });
+
+  it('misses words requiring 3 extra letters when maxExtra is only 2', () => {
+    const expansions = findExpansions('trones', testDictionary, 2);
+    expect(expansions).not.toHaveProperty('bmo');
+  });
+});
+
+describe('buildPuzzleData', () => {
+  it('includes 3-letter expansion keys for 6-letter roots', () => {
+    const dictionary = [
+      'trones',
+      'trombones',  // trones + b,m,o
+      'stonier',    // trones + i
+      'tonners',    // trones + n
+      'snorter',    // trones + r
+      'stoner',
+    ];
+    const result = buildPuzzleData(dictionary);
+    const tronesEntry = (result[6] || []).find(e => e.root === 'trones');
+    expect(tronesEntry).toBeDefined();
+    expect(tronesEntry.expansions).toHaveProperty('bmo');
+    expect(tronesEntry.expansions['bmo']).toContain('trombones');
   });
 });
 

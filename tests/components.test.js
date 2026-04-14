@@ -319,6 +319,30 @@ describe('WordListModal', () => {
     await closeBtn.trigger('click');
     expect(wrapper.emitted('close')).toBeTruthy();
   });
+
+  it('wraps modal sections in a scrollable body container', () => {
+    const wrapper = mount(WordListModal, {
+      props: { round, roundIndex: 0 },
+    });
+    const modalBody = wrapper.find('.modal-body');
+    expect(modalBody.exists()).toBe(true);
+    // All word rows should be inside the scrollable body
+    const wordRows = modalBody.findAll('[data-testid="word-row"]');
+    expect(wordRows.length).toBe(3);
+  });
+
+  it('renders close button outside the scrollable body', () => {
+    const wrapper = mount(WordListModal, {
+      props: { round, roundIndex: 0 },
+    });
+    const modal = wrapper.find('.word-list-modal');
+    const closeBtn = modal.find('[data-testid="close-word-list"]');
+    expect(closeBtn.exists()).toBe(true);
+    // Close button should not be inside .modal-body
+    const modalBody = wrapper.find('.modal-body');
+    const closeBtnInBody = modalBody.find('[data-testid="close-word-list"]');
+    expect(closeBtnInBody.exists()).toBe(false);
+  });
 });
 
 describe('GameBoard', () => {

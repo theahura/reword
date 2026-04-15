@@ -331,7 +331,7 @@ describe('ScoreScreen', () => {
     const wrapper = mount(ScoreScreen, {
       props: { results: tenResults, dateStr: '2026-04-05', totalTimeMs: 50000, solveRates },
     });
-    const roundResults = wrapper.findAll('.round-result');
+    const roundResults = wrapper.findAll('.round-result:not(.rounds-header)');
     expect(roundResults[0].text()).toContain('90%');
     expect(roundResults[4].text()).toContain('50%');
     expect(roundResults[9].text()).toContain('5%');

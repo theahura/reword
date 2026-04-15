@@ -26,6 +26,14 @@
     </div>
     <button id="share-btn" @click="$emit('share')">{{ shareButtonText }}</button>
     <div class="rounds-summary">
+      <div v-if="solveRates" class="round-result rounds-header">
+        <span class="round-num"></span>
+        <span class="round-root"></span>
+        <span class="round-arrow"></span>
+        <span class="round-answer"></span>
+        <span class="round-spacer"></span>
+        <span class="solve-rate-header">Solved by</span>
+      </div>
       <div
         v-for="(r, i) in results"
         :key="i"

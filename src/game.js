@@ -164,11 +164,11 @@ export function generateShareText(results, dateStr, totalTimeMs, timerDisabled) 
   }).join('');
   const solved = results.filter(r => r.answer.length > 0).length;
   if (timerDisabled) {
-    return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length}`;
+    return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length}\nrewordgame.xyz`;
   }
   const mins = Math.floor(totalTimeMs / 1000 / 60);
   const secs = Math.floor(totalTimeMs / 1000) % 60;
-  return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length} | ${mins}:${secs.toString().padStart(2, '0')}`;
+  return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length} | ${mins}:${secs.toString().padStart(2, '0')}\nrewordgame.xyz`;
 }
 
 export function matchTypedToTiles(typedLetters, rootLetters, offeredLetters) {

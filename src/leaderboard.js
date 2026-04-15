@@ -16,7 +16,7 @@ export async function fetchSolveRates(dateStr) {
   if (!snapshot.exists()) return null
   const data = snapshot.data()
   const total = data.totalGames || 0
-  if (total === 0) return null
+  if (total < 10) return null
   return Array.from({ length: 10 }, (_, i) =>
     Math.round(((data[`round${i}Solved`] || 0) / total) * 100)
   )

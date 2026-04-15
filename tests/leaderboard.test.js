@@ -143,4 +143,17 @@ describe('fetchSolveRates', () => {
       expect(rates[i]).toBe(0)
     }
   })
+
+  it('returns null when fewer than 10 games played', async () => {
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        totalGames: 9,
+        round0Solved: 7,
+      }),
+    })
+
+    const rates = await fetchSolveRates('2026-04-15')
+    expect(rates).toBeNull()
+  })
 })

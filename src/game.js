@@ -240,6 +240,10 @@ export function processKeyPress(currentLetters, key, maxLen) {
   return currentLetters;
 }
 
+export function isAllSolved(results) {
+  return results.length === 10 && results.every(r => r.answer.length > 0);
+}
+
 export function calculateScore(completedRounds) {
   return {
     totalLetters: completedRounds.reduce((sum, r) => sum + r.answer.length, 0),

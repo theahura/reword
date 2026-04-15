@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { flushPromises } from '@vue/test-utils';
+
+const { mockConfetti } = vi.hoisted(() => ({ mockConfetti: vi.fn() }));
+vi.mock('canvas-confetti', () => ({ default: mockConfetti }));
 import ScrabbleTile from '../src/components/ScrabbleTile.vue';
 import TileRack from '../src/components/TileRack.vue';
 import VirtualKeyboard from '../src/components/VirtualKeyboard.vue';
@@ -264,6 +267,57 @@ describe('ScoreScreen', () => {
     await link.trigger('click');
     expect(wrapper.emitted('show-word-list')).toBeTruthy();
     expect(wrapper.emitted('show-word-list')[0][0]).toBe(0);
+  });
+
+  it('fires confetti when all 10 rounds are solved and isFreshGame is true', async () => {
+    mockConfetti.mockClear();
+    const allSolvedResults = Array.from({ length: 10 }, (_, i) => ({
+      answer: 'word' + i,
+      timeMs: 5000,
+      root: 'root',
+      possibleAnswers: ['word' + i],
+    }));
+    mount(ScoreScreen, {
+      props: { results: allSolvedResults, dateStr: '2026-04-05', totalTimeMs: 50000, isFreshGame: true },
+    });
+    await flushPromises();
+    expect(mockConfetti).toHaveBeenCalledWith(
+      expect.objectContaining({ disableForReducedMotion: true })
+    );
+  });
+
+  it('does not fire confetti when some rounds are skipped', async () => {
+    mockConfetti.mockClear();
+    const partialResults = [
+      { answer: 'coat', timeMs: 5000, root: 'cat', possibleAnswers: ['coat'] },
+      { answer: '', timeMs: 3000, root: 'dog', possibleAnswers: ['gods'] },
+      ...Array.from({ length: 8 }, (_, i) => ({
+        answer: 'word' + i,
+        timeMs: 5000,
+        root: 'root',
+        possibleAnswers: ['word' + i],
+      })),
+    ];
+    mount(ScoreScreen, {
+      props: { results: partialResults, dateStr: '2026-04-05', totalTimeMs: 50000, isFreshGame: true },
+    });
+    await flushPromises();
+    expect(mockConfetti).not.toHaveBeenCalled();
+  });
+
+  it('does not fire confetti when isFreshGame is false (saved game reload)', async () => {
+    mockConfetti.mockClear();
+    const allSolvedResults = Array.from({ length: 10 }, (_, i) => ({
+      answer: 'word' + i,
+      timeMs: 5000,
+      root: 'root',
+      possibleAnswers: ['word' + i],
+    }));
+    mount(ScoreScreen, {
+      props: { results: allSolvedResults, dateStr: '2026-04-05', totalTimeMs: 50000, isFreshGame: false },
+    });
+    await flushPromises();
+    expect(mockConfetti).not.toHaveBeenCalled();
   });
 });
 

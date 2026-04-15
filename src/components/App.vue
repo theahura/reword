@@ -47,6 +47,7 @@
         :streak-stats="streakStats"
         :lifetime-stats="lifetimeStats"
         :timer-disabled="timerDisabled"
+        :is-fresh-game="isFreshGame"
         @share="handleShare"
         @show-word-list="i => wordListRoundIndex = i"
       />
@@ -83,6 +84,7 @@ const messageType = ref('');
 const flyUp = ref(false);
 const tilesFadingIn = ref(false);
 const gameComplete = ref(false);
+const isFreshGame = ref(false);
 const totalTimeMs = ref(0);
 const muted = ref(false);
 const timerDisabled = ref(false);
@@ -280,6 +282,7 @@ function advanceRound() {
 function showScore(savedResults) {
   clearInterval(timerInterval);
   gameComplete.value = true;
+  isFreshGame.value = !savedResults;
 
   if (savedResults) {
     totalTimeMs.value = savedResults.reduce((sum, r) => sum + r.timeMs, 0);

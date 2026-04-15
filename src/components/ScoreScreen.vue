@@ -49,7 +49,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { calculateScore, formatCountdown, getTimeUntilMidnightUTC } from '../game.js';
+import confetti from 'canvas-confetti';
+import { calculateScore, formatCountdown, getTimeUntilMidnightUTC, isAllSolved } from '../game.js';
 
 const props = defineProps({
   results: { type: Array, required: true },
@@ -59,6 +60,7 @@ const props = defineProps({
   streakStats: { type: Object, default: null },
   lifetimeStats: { type: Object, default: null },
   timerDisabled: { type: Boolean, default: false },
+  isFreshGame: { type: Boolean, default: false },
 });
 
 defineEmits(['share', 'show-word-list']);
@@ -84,6 +86,15 @@ onMounted(() => {
   countdownInterval = setInterval(() => {
     countdown.value = formatCountdown(getTimeUntilMidnightUTC());
   }, 1000);
+
+  if (props.isFreshGame && isAllSolved(props.results)) {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      disableForReducedMotion: true,
+    });
+  }
 });
 
 onUnmounted(() => {

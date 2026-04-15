@@ -17,6 +17,7 @@ import {
   getTimeUntilMidnightUTC,
   getHintLetter,
   removeLetterAt,
+  isAllSolved,
 } from '../src/game.js';
 
 // Minimal puzzle data for testing
@@ -1063,5 +1064,35 @@ describe('getHintLetter', () => {
       commonWords: [],
     };
     expect(getHintLetter(round)).toBe(null);
+  });
+});
+
+describe('isAllSolved', () => {
+  function makeRound(answer, hinted = false) {
+    return { answer, timeMs: 5000, root: 'cat', hinted };
+  }
+
+  it('returns true when all 10 rounds have answers', () => {
+    const results = Array.from({ length: 10 }, () => makeRound('coat'));
+    expect(isAllSolved(results)).toBe(true);
+  });
+
+  it('returns false when any round was skipped', () => {
+    const results = Array.from({ length: 10 }, (_, i) =>
+      i === 4 ? makeRound('') : makeRound('coat')
+    );
+    expect(isAllSolved(results)).toBe(false);
+  });
+
+  it('returns true when rounds include hinted ones', () => {
+    const results = Array.from({ length: 10 }, (_, i) =>
+      i < 3 ? makeRound('coat', true) : makeRound('diner')
+    );
+    expect(isAllSolved(results)).toBe(true);
+  });
+
+  it('returns false for fewer than 10 results', () => {
+    const results = Array.from({ length: 7 }, () => makeRound('coat'));
+    expect(isAllSolved(results)).toBe(false);
   });
 });

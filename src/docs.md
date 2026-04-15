@@ -28,7 +28,8 @@ Path: @/src
 - **Answer validation**: `isValidAnswer()` checks that the answer exists in expansions whose keys are subsets of offered letters, and is not a trivial suffix (s, ed, er appended to root).
 - **Hint selection**: `getHintLetter(round)` picks the best offered letter to reveal as a hint. It prefers offered letters that appear as single-char `commonKeys` entries, breaking ties by counting how many `commonWords` that letter's expansion produces. If no offered letter is a common key, it falls back to the offered letter with the most total expansion words. Returns `null` if no offered letters have any expansions.
 - **Share text**: `generateShareText()` maps each round to an emoji: `🟩` (solved), `🟡` (hinted and solved), or `⬜` (skipped). Skip takes precedence over hint (empty answer = skipped regardless of hint state).
-- **Lifetime stats**: `updateLifetimeStats()` tracks `totalHints` across games. A game is "perfect" only if all 10 rounds are solved with no skips, no hints, and timer enabled. Hinted rounds disqualify a game from perfect status, affecting `fastestTimeMs` and `perfectGamesPlayed` tracking.
+- **"All solved" vs "perfect"**: Two distinct concepts. `isAllSolved(results)` returns true when all 10 rounds have non-empty answers -- hints are allowed, only skips disqualify. This is used to trigger the confetti celebration in `ScoreScreen`. In contrast, `isPerfect` (computed inside `updateLifetimeStats()`) requires all 10 rounds solved with no skips, no hints, and timer enabled. `isPerfect` affects `fastestTimeMs` and `perfectGamesPlayed` tracking.
+- **Lifetime stats**: `updateLifetimeStats()` tracks `totalHints` across games.
 
 ### Things to Know
 

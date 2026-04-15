@@ -5,7 +5,7 @@ Path: @/src
 ### Overview
 
 - Core application source for the Reword daily word puzzle game, a Vue 3 single-page app
-- Contains game logic (pure functions), audio, analytics, PRNG, UI utilities, and all Vue components
+- Contains game logic (pure functions), audio, analytics, Firebase/leaderboard, PRNG, UI utilities, and all Vue components
 - Entry point is `main.js` which initializes GA4 analytics and mounts the Vue app; all game rules live in `game.js`
 
 ### How it fits into the larger codebase
@@ -14,6 +14,8 @@ Path: @/src
 - `game.js` is the central logic module, imported by both components and `@/tests/` -- it owns puzzle selection, answer validation, tile matching, scoring, streak/lifetime stats, and share text generation
 - `prng.js` provides a seeded PRNG (used by `game.js` to deterministically select daily puzzles and offered letters from `@/data/puzzles.json`)
 - `analytics.js` is a thin system-boundary wrapper around GA4's `gtag.js`. It exports `initGA(measurementId)` (called once by `main.js`) and `trackEvent(eventName, params)` (called by `App.vue` at game events). The module gracefully no-ops when GA is not initialized, so all callers can invoke `trackEvent` unconditionally.
+- `firebase.js` initializes the Firebase app and exports a Firestore `db` instance for the `games-reword` project. This is the app's only Firebase entry point; all Firestore operations import `db` from here.
+- `leaderboard.js` provides per-round solve rate tracking via Firestore. Two functions: `submitGameResults(dateStr, completedRounds)` atomically increments a counter document at `daily/{dateStr}` with `totalGames` and per-round `round{i}Solved` fields using Firestore `increment()`; `fetchSolveRates(dateStr)` reads the counter document and returns an array of 10 percentages (or `null` if no data exists). Both are called by `App.vue` at game end -- submit is fire-and-forget, fetch populates `solveRates` for `ScoreScreen`. The Firestore security rules (`@/firestore.rules`) enforce that `totalGames` can only increment by 1 per write.
 - `sound.js` and `ui.js` are browser-side utilities consumed only by components
 - `@/style.css` at the project root contains all CSS, including component-specific styles (no scoped styles in `.vue` files)
 - `@/tests/components.test.js` tests both the pure game logic and the Vue components
@@ -39,5 +41,6 @@ Path: @/src
 - The `commonKeys` and `commonWords` fields from puzzle data are used both at puzzle generation time (for biasing offered letters) and at runtime (for hint selection via `getHintLetter`). These fields are optional; code falls back gracefully when they are absent.
 - Timer gives 70s on touch devices vs 60s on pointer devices, detected once via `matchMedia` at module load
 - `analytics.js` uses `window.dataLayer.push(arguments)` (not spread) as the boundary contract with GA4's `gtag.js`. The gtag.js script is loaded asynchronously via a `<script async>` tag in `@/index.html` with the measurement ID `G-B61TJ0H3MM` hardcoded (it is inherently public). `initGA` is called before `createApp()` in `main.js`.
+- **Firestore data model**: One document per day at `daily/{dateStr}`. Fields are `totalGames` (number of players who finished) and `round0Solved` through `round9Solved` (number of players who solved each round). All writes use `setDoc` with `merge: true` and `increment()`, so the document is created on first write and atomically updated thereafter. This is the app's only network dependency; all Firebase calls are wrapped in `.catch(() => {})` at the call site in `App.vue`, so network failures are silently swallowed and the game functions identically offline.
 
 Created and maintained by Nori.

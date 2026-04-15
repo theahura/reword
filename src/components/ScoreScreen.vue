@@ -37,6 +37,7 @@
         <span class="round-arrow">&rarr;</span>
         <span class="round-answer">{{ r.answer.length > 0 ? r.answer.toUpperCase() : 'SKIPPED' }}</span>
         <span class="round-spacer"></span>
+        <span v-if="solveRates" class="solve-rate">{{ solveRates[i] }}%</span>
         <span
           v-if="r.possibleAnswers && r.possibleAnswers.length"
           class="more-answers-link"
@@ -61,6 +62,7 @@ const props = defineProps({
   lifetimeStats: { type: Object, default: null },
   timerDisabled: { type: Boolean, default: false },
   isFreshGame: { type: Boolean, default: false },
+  solveRates: { type: Array, default: null },
 });
 
 defineEmits(['share', 'show-word-list']);

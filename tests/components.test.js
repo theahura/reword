@@ -319,6 +319,33 @@ describe('ScoreScreen', () => {
     await flushPromises();
     expect(mockConfetti).not.toHaveBeenCalled();
   });
+
+  it('displays solve rate percentages next to each round when solveRates is provided', () => {
+    const tenResults = Array.from({ length: 10 }, (_, i) => ({
+      answer: i < 8 ? 'word' + i : '',
+      timeMs: 5000,
+      root: 'root' + i,
+      possibleAnswers: ['word' + i],
+    }));
+    const solveRates = [90, 80, 70, 60, 50, 40, 30, 20, 10, 5];
+    const wrapper = mount(ScoreScreen, {
+      props: { results: tenResults, dateStr: '2026-04-05', totalTimeMs: 50000, solveRates },
+    });
+    const roundResults = wrapper.findAll('.round-result');
+    expect(roundResults[0].text()).toContain('90%');
+    expect(roundResults[4].text()).toContain('50%');
+    expect(roundResults[9].text()).toContain('5%');
+  });
+
+  it('does not show solve rate percentages when solveRates is null', () => {
+    const wrapper = mount(ScoreScreen, {
+      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000, solveRates: null },
+    });
+    const roundResults = wrapper.findAll('.round-result');
+    roundResults.forEach(rr => {
+      expect(rr.find('.solve-rate').exists()).toBe(false);
+    });
+  });
 });
 
 describe('WordListModal', () => {

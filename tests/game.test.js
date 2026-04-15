@@ -401,6 +401,7 @@ describe('generateShareText', () => {
     expect(lines[0]).toBe('Reword 2026-04-05');
     expect(lines[1]).toBe('🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩');
     expect(lines[2]).toBe('10/10 | 1:00');
+    expect(lines[lines.length - 1]).toBe('rewordgame.xyz');
   });
 
   it('shows white squares for skipped rounds', () => {
@@ -439,6 +440,7 @@ describe('generateShareText', () => {
     expect(lines[2]).toBe('10/10');
     expect(text).not.toContain('|');
     expect(text).not.toContain('1:00');
+    expect(lines[lines.length - 1]).toBe('rewordgame.xyz');
   });
 
   it('includes time in share text when timer is not disabled', () => {

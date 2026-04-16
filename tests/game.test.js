@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   isValidAnswer,
-  isTrivialSuffix,
+  isTrivialAnswer,
   selectDailyPuzzle,
   getOfferedLetters,
   calculateScore,
@@ -93,30 +93,25 @@ describe('selectDailyPuzzle', () => {
   });
 });
 
-describe('isTrivialSuffix', () => {
-  it('returns true for root + s', () => {
-    expect(isTrivialSuffix('rinds', 'rind')).toBe(true);
+describe('isTrivialAnswer', () => {
+  it('returns true when answer appears in round.trivialAnswers', () => {
+    const round = { root: 'rind', trivialAnswers: ['rinds'] };
+    expect(isTrivialAnswer('rinds', round)).toBe(true);
   });
 
-  it('returns true for root + ed', () => {
-    expect(isTrivialSuffix('planted', 'plant')).toBe(true);
+  it('returns false when answer is not in trivialAnswers', () => {
+    const round = { root: 'rind', trivialAnswers: ['rinds'] };
+    expect(isTrivialAnswer('grind', round)).toBe(false);
   });
 
-  it('returns true for root + er', () => {
-    expect(isTrivialSuffix('faster', 'fast')).toBe(true);
-  });
-
-  it('returns false for a genuine rearrangement', () => {
-    expect(isTrivialSuffix('stream', 'aster')).toBe(false);
-  });
-
-  it('returns false for a prepend like master from aster', () => {
-    expect(isTrivialSuffix('master', 'aster')).toBe(false);
+  it('returns false when trivialAnswers is missing', () => {
+    const round = { root: 'rind' };
+    expect(isTrivialAnswer('rinds', round)).toBe(false);
   });
 
   it('is case-insensitive', () => {
-    expect(isTrivialSuffix('RINDS', 'rind')).toBe(true);
-    expect(isTrivialSuffix('rinds', 'RIND')).toBe(true);
+    const round = { root: 'rind', trivialAnswers: ['rinds'] };
+    expect(isTrivialAnswer('RINDS', round)).toBe(true);
   });
 });
 
@@ -130,21 +125,6 @@ describe('isValidAnswer', () => {
   it('rejects a word not in expansions', () => {
     const round = { root: 'rind', expansions: { e: ['diner'], k: ['drink'] }, offeredLetters: ['e', 'k', 'z'] };
     expect(isValidAnswer('pizza', round)).toBe(false);
-  });
-
-  it('rejects trivial suffix appends (root + s)', () => {
-    const round = { root: 'rind', expansions: { s: ['rinds'] }, offeredLetters: ['s', 'g', 'e'] };
-    expect(isValidAnswer('rinds', round)).toBe(false);
-  });
-
-  it('rejects trivial suffix appends (root + ed)', () => {
-    const round = { root: 'plant', expansions: { ed: ['planted'] }, offeredLetters: ['e', 'd', 'z'] };
-    expect(isValidAnswer('planted', round)).toBe(false);
-  });
-
-  it('rejects trivial suffix appends (root + er)', () => {
-    const round = { root: 'fast', expansions: { er: ['faster'] }, offeredLetters: ['e', 'r', 'z'] };
-    expect(isValidAnswer('faster', round)).toBe(false);
   });
 
   it('accepts words containing root as substring when rearranged', () => {
@@ -326,18 +306,6 @@ describe('getAnswersForRound', () => {
     const answers = getAnswersForRound(round);
     expect(answers).toContain('coat');
     expect(answers).not.toContain('cleat');
-  });
-
-  it('excludes trivial suffix words from results', () => {
-    const round = {
-      root: 'rind',
-      expansions: { s: ['rinds'], e: ['diner'], g: ['grind'] },
-      offeredLetters: ['s', 'e', 'g'],
-    };
-    const answers = getAnswersForRound(round);
-    expect(answers).not.toContain('rinds');
-    expect(answers).toContain('diner');
-    expect(answers).toContain('grind');
   });
 
   it('places common words before non-common words', () => {
@@ -576,13 +544,33 @@ describe('getSubmitFeedbackType', () => {
     expect(getSubmitFeedbackType('nadir', roundWithExtra)).toBe('wrong');
   });
 
-  it('returns trivial-suffix for a word that is just root + s/ed/er', () => {
-    const round = { root: 'rind', expansions: { s: ['rinds'] }, offeredLetters: ['s', 'g', 'e'] };
+  it('returns trivial-suffix when answer is listed in round.trivialAnswers', () => {
+    const round = {
+      root: 'rind',
+      expansions: { e: ['diner'] },
+      trivialAnswers: ['rinds'],
+      offeredLetters: ['s', 'g', 'e'],
+    };
     expect(getSubmitFeedbackType('rinds', round)).toBe('trivial-suffix');
   });
 
+  it('returns trivial-suffix for startled when root is startle', () => {
+    const round = {
+      root: 'startle',
+      expansions: {},
+      trivialAnswers: ['startled'],
+      offeredLetters: ['d', 'z', 'x'],
+    };
+    expect(getSubmitFeedbackType('startled', round)).toBe('trivial-suffix');
+  });
+
   it('returns trivial-suffix even when suffix letter is not offered', () => {
-    const round = { root: 'rind', expansions: { e: ['diner'] }, offeredLetters: ['e', 'g', 'x'] };
+    const round = {
+      root: 'rind',
+      expansions: { e: ['diner'] },
+      trivialAnswers: ['rinds'],
+      offeredLetters: ['e', 'g', 'x'],
+    };
     expect(getSubmitFeedbackType('rinds', round)).toBe('trivial-suffix');
   });
 });

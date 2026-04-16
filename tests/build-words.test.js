@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { letterSignature, findExpansions } from '../src/words.js';
-import { buildPuzzleData, trimPuzzleData, filterByCommonWords } from '../scripts/build-words.js';
+import {
+  buildPuzzleData,
+  trimPuzzleData,
+  filterByCommonWords,
+  isTrivialInflection,
+  filterTrivialInflections,
+} from '../scripts/build-words.js';
 
 const testDictionary = [
   'at', 'bat', 'cat', 'sat', 'tab', 'act',
@@ -305,5 +311,269 @@ describe('filterByCommonWords', () => {
     expect(filtered[3]).toHaveLength(1);
     expect(filtered[4]).toHaveLength(1);
     expect(filtered[4][0].root).toBe('rind');
+  });
+});
+
+describe('isTrivialInflection', () => {
+  // Regular inflections
+  it('detects regular past tense with drop-e (startled from startle)', () => {
+    expect(isTrivialInflection('startled', 'startle')).toBe(true);
+  });
+
+  it('detects regular past tense for root ending in e (baked from bake)', () => {
+    expect(isTrivialInflection('baked', 'bake')).toBe(true);
+  });
+
+  it('detects simple plural (cats from cat)', () => {
+    expect(isTrivialInflection('cats', 'cat')).toBe(true);
+  });
+
+  it('detects regular past tense (walked from walk)', () => {
+    expect(isTrivialInflection('walked', 'walk')).toBe(true);
+  });
+
+  it('detects present participle with drop-e (baking from bake)', () => {
+    expect(isTrivialInflection('baking', 'bake')).toBe(true);
+  });
+
+  it('detects present participle (walking from walk)', () => {
+    expect(isTrivialInflection('walking', 'walk')).toBe(true);
+  });
+
+  it('detects adjective comparative (faster from fast)', () => {
+    expect(isTrivialInflection('faster', 'fast')).toBe(true);
+  });
+
+  it('detects adjective superlative (fastest from fast)', () => {
+    expect(isTrivialInflection('fastest', 'fast')).toBe(true);
+  });
+
+  it('detects comparative with drop-e (safer from safe)', () => {
+    expect(isTrivialInflection('safer', 'safe')).toBe(true);
+  });
+
+  it('detects superlative with drop-e (safest from safe)', () => {
+    expect(isTrivialInflection('safest', 'safe')).toBe(true);
+  });
+
+  // Irregular inflections (the string approach misses these)
+  it('detects irregular plural (children from child)', () => {
+    expect(isTrivialInflection('children', 'child')).toBe(true);
+  });
+
+  it('detects irregular past tense (ate from eat)', () => {
+    expect(isTrivialInflection('ate', 'eat')).toBe(true);
+  });
+
+  it('detects irregular past tense (went from go)', () => {
+    expect(isTrivialInflection('went', 'go')).toBe(true);
+  });
+
+  it('detects doubled-consonant past tense (sinned from sin)', () => {
+    expect(isTrivialInflection('sinned', 'sin')).toBe(true);
+  });
+
+  it('detects past participle (seen from see)', () => {
+    expect(isTrivialInflection('seen', 'see')).toBe(true);
+  });
+
+  // True negatives (unrelated words that string rules would wrongly block)
+  it('keeps unrelated word that shares prefix (card keeps from car)', () => {
+    expect(isTrivialInflection('card', 'car')).toBe(false);
+  });
+
+  it('keeps unrelated word lead from lea', () => {
+    expect(isTrivialInflection('lead', 'lea')).toBe(false);
+  });
+
+  it('keeps unrelated word send from sen', () => {
+    expect(isTrivialInflection('send', 'sen')).toBe(false);
+  });
+
+  it('keeps unrelated word burst from bur', () => {
+    expect(isTrivialInflection('burst', 'bur')).toBe(false);
+  });
+
+  it('keeps unrelated word seed from see', () => {
+    expect(isTrivialInflection('seed', 'see')).toBe(false);
+  });
+
+  it('keeps agent-noun derivation (baker from bake)', () => {
+    expect(isTrivialInflection('baker', 'bake')).toBe(false);
+  });
+
+  it('keeps agent-noun derivation (teacher from teach)', () => {
+    expect(isTrivialInflection('teacher', 'teach')).toBe(false);
+  });
+
+  it('keeps adverb derivation (sadly from sad)', () => {
+    expect(isTrivialInflection('sadly', 'sad')).toBe(false);
+  });
+
+  it('keeps adverb derivation (early from ear)', () => {
+    expect(isTrivialInflection('early', 'ear')).toBe(false);
+  });
+
+  // Overrides: cases where lemmatizer is wrong and FORCE_NON_TRIVIAL fixes it
+  it('keeps rated for root rat (override: rated is from rate, not rat)', () => {
+    expect(isTrivialInflection('rated', 'rat')).toBe(false);
+  });
+
+  it('keeps tares for root tar (override: tares is plural of tare)', () => {
+    expect(isTrivialInflection('tares', 'tar')).toBe(false);
+  });
+
+  it('keeps mares for root mar (override: mares is plural of mare)', () => {
+    expect(isTrivialInflection('mares', 'mar')).toBe(false);
+  });
+
+  it('marks severed as trivial for root sever', () => {
+    expect(isTrivialInflection('severed', 'sever')).toBe(true);
+  });
+
+  it('marks lower as trivial for root low (comparative)', () => {
+    expect(isTrivialInflection('lower', 'low')).toBe(true);
+  });
+
+  it('marks aided as trivial for root aid', () => {
+    expect(isTrivialInflection('aided', 'aid')).toBe(true);
+  });
+
+  // Wink-lemmatizer over-reduces past "root[:-1]" when root ends in 'e'.
+  // We compensate by also accepting lemma + 'e' === root when the answer
+  // starts with the root (i.e., it's literally root + some suffix letters).
+  it('marks rated as trivial for root rate (lemmatizer over-reduces to rat)', () => {
+    expect(isTrivialInflection('rated', 'rate')).toBe(true);
+  });
+
+  it('marks hoped as trivial for root hope', () => {
+    expect(isTrivialInflection('hoped', 'hope')).toBe(true);
+  });
+
+  it('marks mated as trivial for root mate', () => {
+    expect(isTrivialInflection('mated', 'mate')).toBe(true);
+  });
+
+  it('marks hating as trivial for root hate', () => {
+    expect(isTrivialInflection('hating', 'hate')).toBe(true);
+  });
+
+  it('marks rating as trivial for root rate', () => {
+    expect(isTrivialInflection('rating', 'rate')).toBe(true);
+  });
+
+  it('does NOT mark rats as trivial for root rate (rats is plural of rat, not inflection of rate)', () => {
+    expect(isTrivialInflection('rats', 'rate')).toBe(false);
+  });
+});
+
+describe('filterTrivialInflections', () => {
+  it('moves trivial inflections out of expansions and into trivialAnswers', () => {
+    const puzzleData = {
+      7: [{
+        root: 'startle',
+        expansions: {
+          d: ['startled'],
+          r: ['startler'],
+          s: ['startles'],
+        },
+      }],
+    };
+
+    const result = filterTrivialInflections(puzzleData);
+    const entry = result[7][0];
+
+    // startled, startles are trivial inflections; startler is agent-noun derivation (kept)
+    expect(entry.expansions.d).toBeUndefined();
+    expect(entry.expansions.s).toBeUndefined();
+    expect(entry.expansions.r).toEqual(['startler']);
+    expect(entry.trivialAnswers).toEqual(expect.arrayContaining(['startled', 'startles']));
+    expect(entry.trivialAnswers).not.toContain('startler');
+  });
+
+  it('keeps legitimate anagrams that coincidentally share a prefix', () => {
+    const puzzleData = {
+      3: [{
+        root: 'car',
+        expansions: {
+          d: ['card'],  // legitimate anagram; NOT trivial
+          t: ['cart'],
+        },
+      }],
+    };
+
+    const result = filterTrivialInflections(puzzleData);
+    const entry = result[3][0];
+
+    expect(entry.expansions.d).toEqual(['card']);
+    expect(entry.expansions.t).toEqual(['cart']);
+    expect(entry.trivialAnswers || []).not.toContain('card');
+  });
+
+  it('removes expansion keys that become empty after filtering', () => {
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: {
+          s: ['cats'],           // all trivial
+          o: ['coat', 'taco'],   // all legitimate
+        },
+      }],
+    };
+
+    const result = filterTrivialInflections(puzzleData);
+    const entry = result[3][0];
+
+    expect(entry.expansions.s).toBeUndefined();
+    expect(entry.expansions.o).toEqual(expect.arrayContaining(['coat', 'taco']));
+    expect(entry.trivialAnswers).toEqual(['cats']);
+  });
+
+  it('partitions words within a shared expansion key', () => {
+    const puzzleData = {
+      4: [{
+        root: 'bake',
+        expansions: {
+          d: ['baked'],                      // trivial past tense
+          r: ['baker'],                      // kept (agent noun)
+        },
+      }],
+    };
+
+    const result = filterTrivialInflections(puzzleData);
+    const entry = result[4][0];
+
+    expect(entry.expansions.d).toBeUndefined();
+    expect(entry.expansions.r).toEqual(['baker']);
+    expect(entry.trivialAnswers).toEqual(['baked']);
+  });
+
+  it('preserves other entry fields (commonKeys, commonWords)', () => {
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: { s: ['cats'], o: ['coat'] },
+        commonKeys: ['o'],
+        commonWords: ['coat'],
+      }],
+    };
+
+    const result = filterTrivialInflections(puzzleData);
+    const entry = result[3][0];
+
+    expect(entry.commonKeys).toEqual(['o']);
+    expect(entry.commonWords).toEqual(['coat']);
+  });
+
+  it('handles multiple root lengths', () => {
+    const puzzleData = {
+      3: [{ root: 'cat', expansions: { s: ['cats'] } }],
+      4: [{ root: 'walk', expansions: { ing: ['walking'] } }],
+    };
+
+    const result = filterTrivialInflections(puzzleData);
+
+    expect(result[3][0].trivialAnswers).toEqual(['cats']);
+    expect(result[4][0].trivialAnswers).toEqual(['walking']);
   });
 });

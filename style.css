@@ -190,8 +190,14 @@ header h1 {
 .tile-rack {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   margin: 8px 0;
+}
+
+.tile-rack .tile {
+  flex: 0 1 52px;
+  height: auto;
+  aspect-ratio: 1;
 }
 
 .tile-rack .tile:not(.used) {
@@ -1087,7 +1093,8 @@ header h1 {
     font-size: 18px;
     margin: 2px;
   }
-  #input-area .tile {
+  #input-area .tile,
+  .tile-rack .tile {
     flex-basis: 40px;
   }
   header h1 {

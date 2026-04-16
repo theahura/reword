@@ -77,7 +77,6 @@ async function downloadCommonWords() {
 
 export function trimPuzzleData(puzzleData) {
   const MAX_ROOTS_PER_LENGTH = 500;
-  const MAX_WORDS_PER_KEY = 5;
 
   const result = {};
   for (const [len, roots] of Object.entries(puzzleData)) {
@@ -95,16 +94,6 @@ export function trimPuzzleData(puzzleData) {
         return bSingle - aSingle || Object.keys(b.expansions).length - Object.keys(a.expansions).length;
       });
       trimmedRoots = trimmedRoots.slice(0, MAX_ROOTS_PER_LENGTH);
-    }
-
-    for (const entry of trimmedRoots) {
-      for (const key of Object.keys(entry.expansions)) {
-        if (entry.expansions[key].length > MAX_WORDS_PER_KEY) {
-          entry.expansions[key] = entry.expansions[key].slice(0, MAX_WORDS_PER_KEY);
-        }
-      }
-      const allWords = new Set(Object.values(entry.expansions).flat());
-      entry.commonWords = entry.commonWords.filter(w => allWords.has(w));
     }
 
     result[len] = trimmedRoots;

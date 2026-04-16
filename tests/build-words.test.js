@@ -147,16 +147,31 @@ describe('trimPuzzleData', () => {
     expect(trimmed['3'][0].commonWords).toEqual(['wa']);
   });
 
-  it('limits the number of words returned for each expansion key', () => {
+  it('preserves all words for each expansion key without capping', () => {
     const manyWords = Array.from({ length: 20 }, (_, i) => 'w' + i);
     const puzzleData = { 3: [{ root: 'test', expansions: { a: manyWords } }] };
 
     const trimmed = trimPuzzleData(puzzleData);
     const words = trimmed['3'][0].expansions['a'];
 
-    expect(words).toHaveLength(5);
-    for (const w of words) {
-      expect(manyWords).toContain(w);
+    expect(words).toHaveLength(20);
+    expect(words).toEqual(manyWords);
+  });
+
+  it('caps roots per length at 500 but preserves all words within each root', () => {
+    const roots = Array.from({ length: 600 }, (_, i) => ({
+      root: 'r' + i,
+      expansions: { a: ['wa'], b: ['wb'], c: ['wc'] },
+    }));
+    const puzzleData = { 3: roots };
+
+    const trimmed = trimPuzzleData(puzzleData);
+
+    expect(trimmed['3']).toHaveLength(500);
+    for (const entry of trimmed['3']) {
+      expect(entry.expansions['a']).toEqual(['wa']);
+      expect(entry.expansions['b']).toEqual(['wb']);
+      expect(entry.expansions['c']).toEqual(['wc']);
     }
   });
 });

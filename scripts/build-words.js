@@ -1,11 +1,98 @@
 import { writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
+import lem from 'wink-lemmatizer';
 import { buildSignatureIndex, findExpansions } from '../src/words.js';
 
 const WORD_LIST_URL = 'https://raw.githubusercontent.com/cviebrock/wordlists/master/TWL06.txt';
 const COMMON_WORDS_URL = 'https://raw.githubusercontent.com/david47k/top-english-wordlists/master/top_english_words_lower_50000.txt';
 const OUTPUT_PATH = new URL('../data/puzzles.json', import.meta.url).pathname;
 const MIN_EXPANSIONS = 3;
+
+// Manual overrides for wink-lemmatizer edge cases, keyed as `${root}|${answer}`.
+// FORCE_TRIVIAL: lemmatizer missed a true trivial inflection.
+// FORCE_NON_TRIVIAL: lemmatizer incorrectly flagged a legitimate answer as trivial.
+// These were derived by running the lemmatizer across the full TWL06 corpus
+// and manually reviewing flagged pairs. The dominant false-positive pattern is
+// root + 'e' is a word, and answer is really the inflection of root+'e'
+// (e.g., 'rated' is from 'rate', not 'rat'; 'mares' is from 'mare', not 'mar').
+const FORCE_TRIVIAL = new Set();
+const FORCE_NON_TRIVIAL = new Set([
+  'sin|sines', 'sag|sages', 'rot|rotes', 'ras|rases', 'sit|sited',
+  'pas|pases', 'sip|siped', 'sip|sipes', 'rat|rated', 'tar|tared',
+  'tar|tares', 'mar|mares', 'tin|tined', 'tin|tines', 'lam|lamed',
+  'hat|hated', 'bar|bared', 'par|pared', 'rap|raped', 'sup|supes',
+  'sol|soles', 'far|farer', 'rub|rubes', 'lop|loped', 'din|dined',
+  'rag|raged', 'pal|paled', 'wan|waned', 'low|lowes', 'aid|aides',
+  'war|wared', 'log|loges', 'hop|hoped', 'sic|sices', 'cat|cates',
+  'pat|pated', 'pat|pates', 'tap|taped', 'lob|lobed', 'lob|lobes',
+  'cap|caped', 'cap|capes', 'nod|nodes', 'con|coned', 'rob|robed',
+  'rim|rimed', 'lug|luged', 'cop|coped', 'run|runes', 'nap|napes',
+  'pan|paned', 'pan|panes', 'mat|mated', 'mat|mater', 'top|toped',
+  'dun|dunes', 'win|wined', 'wad|waded', 'fat|fated', 'man|maned',
+  'man|manes', 'pin|pined', 'rip|riped', 'rip|ripes', 'eros|eroses',
+  'sire|sirees', 'scar|scared', 'star|stared', 'rage|ragees',
+  'mars|marses', 'spar|spared', 'sell|selles', 'slat|slated',
+  'agon|agones', 'loos|looses', 'slop|sloped', 'slim|slimed',
+  'char|chared', 'char|chares', 'regal|regaler', 'indorse|indorsees',
+  'relocate|relocatees',
+]);
+
+export function isTrivialInflection(answer, root) {
+  const a = answer.toLowerCase();
+  const r = root.toLowerCase();
+  if (a === r) return false;
+  const key = `${r}|${a}`;
+  if (FORCE_TRIVIAL.has(key)) return true;
+  if (FORCE_NON_TRIVIAL.has(key)) return false;
+
+  // Direct match: wink returns the root as lemma for one of the POS tags.
+  for (const fn of [lem.verb, lem.noun, lem.adjective]) {
+    if (fn(a) === r) return true;
+  }
+
+  // Drop-e compensation: wink over-reduces (e.g., 'rated' -> 'rat' instead of
+  // 'rate'). When root ends in 'e' we accept the lemma if wink's output plus
+  // 'e' equals the root, but guard against false positives by requiring the
+  // answer to be a literal root+suffix inflection: either starts with the
+  // full root (rated, rates, rater), or is the drop-e present participle
+  // (root[:-1] + 'ing', e.g., hating, rating). This distinguishes 'rated'
+  // (from 'rate') from 'rats' (from 'rat', which does not satisfy either shape).
+  if (r.endsWith('e')) {
+    const dropE = r.slice(0, -1);
+    const looksLikeInflection = a.startsWith(r) || a === dropE + 'ing';
+    if (looksLikeInflection) {
+      for (const fn of [lem.verb, lem.noun, lem.adjective]) {
+        if (fn(a) + 'e' === r) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+export function filterTrivialInflections(puzzleData) {
+  const result = {};
+  for (const [len, roots] of Object.entries(puzzleData)) {
+    result[len] = roots.map(entry => {
+      const newExpansions = {};
+      const trivialAnswers = [];
+      for (const [key, words] of Object.entries(entry.expansions)) {
+        const keep = [];
+        for (const w of words) {
+          if (isTrivialInflection(w, entry.root)) {
+            trivialAnswers.push(w);
+          } else {
+            keep.push(w);
+          }
+        }
+        if (keep.length > 0) newExpansions[key] = keep;
+      }
+      const mergedTrivial = [...(entry.trivialAnswers || []), ...trivialAnswers];
+      return { ...entry, expansions: newExpansions, trivialAnswers: mergedTrivial };
+    });
+  }
+  return result;
+}
 
 async function downloadWordList() {
   console.log('Downloading TWL06 word list...');
@@ -85,6 +172,7 @@ export function trimPuzzleData(puzzleData) {
       expansions: { ...entry.expansions },
       commonKeys: entry.commonKeys || [],
       commonWords: entry.commonWords || [],
+      trivialAnswers: entry.trivialAnswers || [],
     }));
 
     if (trimmedRoots.length > MAX_ROOTS_PER_LENGTH) {
@@ -107,7 +195,15 @@ async function main() {
   const commonWords = await downloadCommonWords();
   const puzzleData = buildPuzzleData(dictionary);
 
-  const filtered = filterByCommonWords(puzzleData, commonWords);
+  console.log('Filtering trivial inflections...');
+  const deTrivialized = filterTrivialInflections(puzzleData);
+  let totalTrivial = 0;
+  for (const roots of Object.values(deTrivialized)) {
+    for (const entry of roots) totalTrivial += entry.trivialAnswers.length;
+  }
+  console.log(`  Moved ${totalTrivial} trivial inflections out of expansions into trivialAnswers`);
+
+  const filtered = filterByCommonWords(deTrivialized, commonWords);
   for (const [len, roots] of Object.entries(filtered)) {
     const original = puzzleData[len].length;
     console.log(`${len}-letter roots: ${roots.length}/${original} (${original - roots.length} dropped)`);

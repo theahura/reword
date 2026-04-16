@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /daily/{dateStr} {
+      allow read: if true;
+      allow create: if
+        request.resource.data.totalGames == 1 &&
+        request.resource.data.keys().hasOnly(
+          ['totalGames', 'round0Solved', 'round1Solved', 'round2Solved',
+           'round3Solved', 'round4Solved', 'round5Solved', 'round6Solved',
+           'round7Solved', 'round8Solved', 'round9Solved']);
+      allow update: if
+        request.resource.data.totalGames == resource.data.totalGames + 1 &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(
+          ['totalGames', 'round0Solved', 'round1Solved', 'round2Solved',
+           'round3Solved', 'round4Solved', 'round5Solved', 'round6Solved',
+           'round7Solved', 'round8Solved', 'round9Solved']);
+      allow delete: if false;
+    }
+  }
+}

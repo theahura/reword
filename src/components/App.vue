@@ -48,6 +48,7 @@
         :lifetime-stats="lifetimeStats"
         :timer-disabled="timerDisabled"
         :is-fresh-game="isFreshGame"
+        :solve-rates="solveRates"
         @share="handleShare"
         @show-word-list="i => wordListRoundIndex = i"
       />
@@ -67,6 +68,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { selectDailyPuzzle, isValidAnswer, calculateScore, getAnswersForRound, generateShareText, getSubmitFeedbackType, updateStreakStats, updateLifetimeStats, processKeyPress, removeLetterAt, getHintLetter } from '../game.js';
 import { getAudioContext, initSound } from '../sound.js';
 import { trackEvent } from '../analytics.js';
+import { submitGameResults, fetchSolveRates } from '../leaderboard.js';
 import GameBoard from './GameBoard.vue';
 import VirtualKeyboard from './VirtualKeyboard.vue';
 import ScoreScreen from './ScoreScreen.vue';
@@ -151,6 +153,7 @@ const currentRound = computed(() => puzzle.value ? puzzle.value[state.currentRou
 const runningLetterScore = computed(() => state.completedRounds.reduce((sum, r) => sum + r.answer.length, 0));
 const streakStats = ref(null);
 const lifetimeStats = ref(null);
+const solveRates = ref(null);
 
 function startTimer() {
   if (!state.startTime) state.startTime = Date.now();
@@ -319,6 +322,11 @@ function showScore(savedResults) {
       localStorage.setItem('reword-lifetime-stats', JSON.stringify(updatedLifetime));
     } catch (e) {}
   }
+
+  const submitted = (!savedResults && dateStr.value)
+    ? submitGameResults(dateStr.value, state.completedRounds).catch(() => {})
+    : Promise.resolve();
+  submitted.then(() => fetchSolveRates(dateStr.value)).then(rates => { solveRates.value = rates; }).catch(() => {});
 
   // Load streak stats for display
   try {

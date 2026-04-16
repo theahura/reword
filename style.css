@@ -442,6 +442,27 @@ header h1 {
   flex: 1;
 }
 
+.solve-rate {
+  font-size: 12px;
+  color: #818384;
+  min-width: 52px;
+  text-align: right;
+}
+
+.solve-rate-header {
+  font-size: 11px;
+  color: #565758;
+  min-width: 52px;
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rounds-header {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 /* Submit button */
 #submit-btn {
   display: block;

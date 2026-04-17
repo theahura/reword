@@ -453,6 +453,8 @@ header h1 {
   font-size: 12px;
   font-weight: normal;
   color: #565758;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   padding-bottom: 4px;
 }
 

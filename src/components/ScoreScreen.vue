@@ -1,16 +1,18 @@
 <template>
   <div id="score-screen">
     <h2>{{ heading }}</h2>
-    <div class="stats-row">
+    <div class="stats-grid" :class="{ 'two-col': timerDisabled }">
       <div class="stat">Words Solved<br><span class="stat-value">{{ solved }} / 10</span></div>
       <div class="stat">Total Letters<br><span class="stat-value">{{ totalLetters }}</span></div>
       <div v-if="!timerDisabled" class="stat">Total Time<br><span class="stat-value">{{ formattedTime }}</span></div>
+      <div></div>
+      <div class="countdown-section">
+        <span class="countdown-label">Next puzzle in</span>
+        <span class="countdown-timer">{{ countdown }}</span>
+        <button id="share-btn" @click="$emit('share')">{{ shareButtonText }}</button>
+      </div>
+      <div></div>
     </div>
-    <div class="countdown-section">
-      <span class="countdown-label">Next puzzle in</span>
-      <span class="countdown-timer">{{ countdown }}</span>
-    </div>
-    <button id="share-btn" @click="$emit('share')">{{ shareButtonText }}</button>
     <div class="rounds-summary-wrap">
     <table class="rounds-summary">
       <thead class="rounds-header">

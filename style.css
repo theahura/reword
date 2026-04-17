@@ -311,6 +311,16 @@ header h1 {
   margin-bottom: 24px;
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  margin-bottom: 24px;
+}
+
+.stats-grid.two-col {
+  grid-template-columns: 1fr 1fr;
+}
+
 #score-screen .stat {
   color: #818384;
   font-size: 14px;
@@ -328,6 +338,7 @@ header h1 {
   margin-bottom: 16px;
   color: #818384;
   font-size: 14px;
+  text-align: center;
 }
 
 .countdown-label {
@@ -348,7 +359,7 @@ header h1 {
 /* Share button */
 #share-btn {
   display: block;
-  margin: 0 auto 16px;
+  margin: 16px auto 0;
   padding: 12px 32px;
   background: #538d4e;
   border: none;

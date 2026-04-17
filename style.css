@@ -362,10 +362,10 @@ header h1 {
   display: inline-flex;
   margin: 16px auto 0;
   padding: 10px 16px;
-  background: #121213;
-  border: 2px solid #3a3a3c;
+  background: #538d4e;
+  border: 2px solid #538d4e;
   border-radius: 4px;
-  color: #d7dadc;
+  color: #fff;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -374,8 +374,8 @@ header h1 {
 }
 
 #share-btn:hover {
-  border-color: #538d4e;
-  color: #538d4e;
+  background: #6aaa64;
+  border-color: #6aaa64;
 }
 
 #share-btn:active {

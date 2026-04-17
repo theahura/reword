@@ -6,11 +6,6 @@
       <div class="stat">Total Letters<br><span class="stat-value">{{ totalLetters }}</span></div>
       <div v-if="!timerDisabled" class="stat">Total Time<br><span class="stat-value">{{ formattedTime }}</span></div>
     </div>
-    <div v-if="streakStats" class="stats-row streak-stats">
-      <div class="stat">Played<br><span class="stat-value">{{ streakStats.gamesPlayed }}</span></div>
-      <div class="stat">Current Streak<br><span class="stat-value">{{ streakStats.currentStreak }}</span></div>
-      <div class="stat">Max Streak<br><span class="stat-value">{{ streakStats.maxStreak }}</span></div>
-    </div>
     <div class="countdown-section">
       <span class="countdown-label">Next puzzle in</span>
       <span class="countdown-timer">{{ countdown }}</span>
@@ -60,7 +55,6 @@ const props = defineProps({
   dateStr: { type: String, required: true },
   totalTimeMs: { type: Number, required: true },
   shareButtonText: { type: String, default: 'Share Results' },
-  streakStats: { type: Object, default: null },
   timerDisabled: { type: Boolean, default: false },
   isFreshGame: { type: Boolean, default: false },
   solveRates: { type: Array, default: null },

@@ -400,6 +400,8 @@ header h1 {
 .rounds-summary {
   width: 100%;
   border-collapse: collapse;
+  font-size: inherit;
+  font-family: inherit;
 }
 
 .rounds-summary td,

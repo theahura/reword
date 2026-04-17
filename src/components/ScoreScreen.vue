@@ -1,6 +1,5 @@
 <template>
   <div id="score-screen">
-    <h2>Game Complete!</h2>
     <div class="stats-row">
       <div class="stat">Words Solved<br><span class="stat-value">{{ solved }} / 10</span></div>
       <div class="stat">Total Letters<br><span class="stat-value">{{ totalLetters }}</span></div>
@@ -10,15 +9,6 @@
       <div class="stat">Played<br><span class="stat-value">{{ streakStats.gamesPlayed }}</span></div>
       <div class="stat">Current Streak<br><span class="stat-value">{{ streakStats.currentStreak }}</span></div>
       <div class="stat">Max Streak<br><span class="stat-value">{{ streakStats.maxStreak }}</span></div>
-    </div>
-    <div v-if="lifetimeStats" class="stats-row lifetime-stats">
-      <h3 class="stats-section-title">Lifetime Stats</h3>
-      <div class="stat">Total Letters<br><span class="stat-value">{{ lifetimeStats.totalLetters }}</span></div>
-      <div class="stat">Total Words<br><span class="stat-value">{{ lifetimeStats.totalWords }}</span></div>
-      <div class="stat">Fastest Time<br><span class="stat-value">{{ lifetimeStats.fastestTimeMs != null ? formatTime(lifetimeStats.fastestTimeMs) : 'N/A' }}</span></div>
-      <div class="stat">Avg Time<br><span class="stat-value">{{ lifetimeStats.perfectGamesPlayed > 0 ? formatTime(lifetimeStats.perfectGamesTotalTimeMs / lifetimeStats.perfectGamesPlayed) : 'N/A' }}</span></div>
-      <div class="stat">Best Score<br><span class="stat-value">{{ lifetimeStats.bestLetterScore }}</span></div>
-      <div class="stat">Longest Word<br><span class="stat-value">{{ lifetimeStats.longestWord.toUpperCase() }}</span></div>
     </div>
     <div class="countdown-section">
       <span class="countdown-label">Next puzzle in</span>
@@ -70,7 +60,6 @@ const props = defineProps({
   totalTimeMs: { type: Number, required: true },
   shareButtonText: { type: String, default: 'Share Results' },
   streakStats: { type: Object, default: null },
-  lifetimeStats: { type: Object, default: null },
   timerDisabled: { type: Boolean, default: false },
   isFreshGame: { type: Boolean, default: false },
   solveRates: { type: Array, default: null },
@@ -85,12 +74,6 @@ const totalLetters = score.totalLetters;
 const mins = Math.floor(props.totalTimeMs / 1000 / 60);
 const secs = Math.floor(props.totalTimeMs / 1000) % 60;
 const formattedTime = `${mins}:${secs.toString().padStart(2, '0')}`;
-
-function formatTime(ms) {
-  const mins = Math.floor(ms / 1000 / 60);
-  const secs = Math.floor(ms / 1000) % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
 
 const countdown = ref(formatCountdown(getTimeUntilMidnightUTC()));
 let countdownInterval = null;

@@ -314,6 +314,7 @@ header h1 {
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
+  row-gap: 16px;
   margin-bottom: 24px;
 }
 

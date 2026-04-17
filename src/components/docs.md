@@ -22,11 +22,13 @@ Path: @/src/components
 
 - **Game flow**: `handleSubmit()` validates input via `getSubmitFeedbackType()`. Profane input (`'profanity'` feedback) shows the error message "This is a family friendly game" and does not advance the round. Correct answers push to `completedRounds` with `offeredLetters`, `possibleAnswers`, and `hinted` flag, trigger fly-up animation, then call `advanceRound()`. `handleSkip()` pushes an empty-answer entry with the same fields. `handleHint()` calls `getHintLetter()` from `@/src/game.js`, finds its index in `offeredLetters`, and sets `hintIndex`. Hint is a one-shot action per round: the button hides once `hintIndex` is set, and `hintIndex` resets to `null` on `advanceRound()`. After round 10, `showScore()` persists to localStorage and displays `ScoreScreen`. Each of these lifecycle events fires a GA4 analytics event via `trackEvent()` from `@/src/analytics.js` (`round_complete`, `round_skip`, `hint_used`, `game_complete`, `share_results`). The `game_complete` event is deliberately NOT fired when restoring a saved game (the `savedResults` guard in `showScore()`).
 
-- **ScoreScreen.vue** -- Receives `results` (the `completedRounds` array), `isFreshGame`, and `solveRates` (Array or null) as props. Displays stats, streak info, lifetime stats, countdown to next puzzle, share button, and a per-round summary rendered as a semantic HTML `<table>` (with column headers "Root", "Result", and conditionally "Solved by") inside a scrollable `.rounds-summary-wrap` div. When `solveRates` is provided, each round row displays a percentage showing what fraction of players solved that round (Sporcle-style social comparison). On mount, if `isFreshGame` is true and `isAllSolved(results)` passes, fires a `canvas-confetti` burst (with `disableForReducedMotion: true` for accessibility). This ensures confetti only fires on first completion, not on saved game reload. For each round, `otherAnswers()` filters the player's own answer out of `possibleAnswers` and displays up to 3 inline. A "+N more" button emits `show-word-list` with the round index.
+- **ScoreScreen.vue** -- Receives `results` (the `completedRounds` array), `isFreshGame`, and `solveRates` (Array or null) as props. Displays stats, countdown to next puzzle, share buttons, and a per-round summary rendered as a semantic HTML `<table>` (with column headers "Root", "Result", and conditionally "Solved by") inside a scrollable `.rounds-summary-wrap` div. The heading (e.g., "Congratulations!") and share button text are rendered using `TileText` to display each letter as an individual game tile. Two share button variants are rendered: one with `offered` tile styling (green) and one flat variant for comparison. When `solveRates` is provided, each round row displays a percentage showing what fraction of players solved that round (Sporcle-style social comparison). On mount, if `isFreshGame` is true and `isAllSolved(results)` passes, fires a `canvas-confetti` burst (with `disableForReducedMotion: true` for accessibility). This ensures confetti only fires on first completion, not on saved game reload.
 
 - **WordListModal.vue** -- Overlay modal opened when the user clicks "+N more" on any round in `ScoreScreen`. Receives a single `round` object (from `completedRounds`) and `roundIndex`. The modal has a fixed header (close button + h2 title) and a scrollable `.modal-body` div that wraps the three content sections (root word tiles, offered letter tiles, and possible word rows). The body scrolls independently via `overflow-y: auto` with `max-height: calc(80vh - 120px)`, keeping the header pinned. Uses `matchTypedToTiles()` from `@/src/game.js` to determine which letters in each word came from root vs offered pool, applying green styling to offered-source tiles.
 
-- **ScrabbleTile.vue** -- Renders a single letter tile. Accepts `letter` and optional `tile-class` prop. Used by `GameBoard`, `TileRack`, and `WordListModal`.
+- **TileText.vue** -- Reusable component that renders a text string as letter tiles, matching the game's tile aesthetic. Takes a `text` prop and optional `tileClass` prop. Splits the text on spaces into words, rendering each word as a row of `ScrabbleTile` components. Used by `ScoreScreen` for headings and share button labels. Styling in `@/style.css` sizes tiles at 32px (24px on narrow viewports) -- smaller than gameplay tiles.
+
+- **ScrabbleTile.vue** -- Renders a single letter tile. Accepts `letter` and optional `tile-class` prop. Used by `GameBoard`, `TileRack`, `TileText`, and `WordListModal`.
 
 ```
 App.vue
@@ -37,6 +39,8 @@ App.vue
   |           |-- ScrabbleTile.vue
   |-- VirtualKeyboard.vue
   |-- ScoreScreen.vue
+  |     |-- TileText.vue
+  |           |-- ScrabbleTile.vue
   |-- WordListModal.vue (overlay)
         |-- ScrabbleTile.vue
 ```

@@ -12,6 +12,7 @@ import GameBoard from '../src/components/GameBoard.vue';
 import HowToPlay from '../src/components/HowToPlay.vue';
 import LoadingScreen from '../src/components/LoadingScreen.vue';
 import WordListModal from '../src/components/WordListModal.vue';
+import TileText from '../src/components/TileText.vue';
 import App from '../src/components/App.vue';
 
 describe('ScrabbleTile', () => {
@@ -297,6 +298,95 @@ describe('ScoreScreen', () => {
     roundResults.forEach(rr => {
       expect(rr.find('.solve-rate').exists()).toBe(false);
     });
+  });
+});
+
+describe('TileText', () => {
+  it('renders each letter of a single word as an individual tile', () => {
+    const wrapper = mount(TileText, { props: { text: 'Hello' } });
+    const tiles = wrapper.findAll('.tile');
+    expect(tiles).toHaveLength(5);
+    expect(wrapper.text()).toContain('H');
+    expect(wrapper.text()).toContain('E');
+    expect(wrapper.text()).toContain('L');
+    expect(wrapper.text()).toContain('O');
+  });
+
+  it('renders multi-word text with a separate row per word', () => {
+    const wrapper = mount(TileText, { props: { text: 'Share Results' } });
+    const rows = wrapper.findAll('.tile-text-row');
+    expect(rows).toHaveLength(2);
+    expect(rows[0].text().replace(/\s/g, '')).toBe('SHARE');
+    expect(rows[1].text().replace(/\s/g, '')).toBe('RESULTS');
+  });
+
+  it('passes tileClass through to each tile', () => {
+    const wrapper = mount(TileText, { props: { text: 'Hi', tileClass: 'offered' } });
+    const tiles = wrapper.findAll('.tile');
+    expect(tiles.length).toBeGreaterThan(0);
+    tiles.forEach(tile => {
+      expect(tile.classes()).toContain('offered');
+    });
+  });
+
+  it('renders punctuation as tiles', () => {
+    const wrapper = mount(TileText, { props: { text: 'Wow!' } });
+    const tiles = wrapper.findAll('.tile');
+    expect(tiles).toHaveLength(4);
+    expect(wrapper.text()).toContain('!');
+  });
+
+  it('renders nothing for empty string', () => {
+    const wrapper = mount(TileText, { props: { text: '' } });
+    expect(wrapper.findAll('.tile')).toHaveLength(0);
+  });
+
+  it('assigns staggered animation delays when animate is true', () => {
+    const wrapper = mount(TileText, { props: { text: 'Hi', animate: true } });
+    const tiles = wrapper.findAll('.tile');
+    expect(tiles).toHaveLength(2);
+    const delay0 = tiles[0].attributes('style');
+    const delay1 = tiles[1].attributes('style');
+    expect(delay0).toContain('animation-delay');
+    expect(delay1).toContain('animation-delay');
+    // Second tile should have a larger delay than the first
+    const parseDelay = (s) => parseFloat(s.match(/animation-delay:\s*([\d.]+)/)[1]);
+    expect(parseDelay(delay1)).toBeGreaterThan(parseDelay(delay0));
+  });
+
+  it('does not add animation delays when animate is false', () => {
+    const wrapper = mount(TileText, { props: { text: 'Hi', animate: false } });
+    const tiles = wrapper.findAll('.tile');
+    tiles.forEach(tile => {
+      const style = tile.attributes('style') || '';
+      expect(style).not.toContain('animation-delay');
+    });
+  });
+});
+
+describe('ScoreScreen tile heading', () => {
+  const results = [
+    { answer: 'coat', timeMs: 5000, root: 'cat', possibleAnswers: ['coat', 'taco'] },
+    { answer: '', timeMs: 3000, root: 'dog', possibleAnswers: ['gods'] },
+    { answer: 'diner', timeMs: 4000, root: 'rind', possibleAnswers: ['diner', 'drink'] },
+  ];
+
+  it('renders the heading as tiles instead of plain text', () => {
+    const wrapper = mount(ScoreScreen, {
+      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000 },
+    });
+    const heading = wrapper.find('.tile-text');
+    expect(heading.exists()).toBe(true);
+    expect(heading.findAll('.tile').length).toBeGreaterThan(0);
+  });
+
+  it('renders share button text as tiles', () => {
+    const wrapper = mount(ScoreScreen, {
+      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000 },
+    });
+    const shareBtn = wrapper.find('#share-btn');
+    const tilesInButton = shareBtn.findAll('.tile');
+    expect(tilesInButton.length).toBeGreaterThan(0);
   });
 });
 

@@ -1,6 +1,6 @@
 <template>
   <div id="score-screen">
-    <h2>{{ heading }}</h2>
+    <h2><TileText :text="heading" animate /></h2>
     <div class="stats-grid" :class="{ 'two-col': timerDisabled }">
       <div class="stat">Words Solved<br><span class="stat-value">{{ solved }} / 10</span></div>
       <div class="stat">Total Letters<br><span class="stat-value">{{ totalLetters }}</span></div>
@@ -9,10 +9,10 @@
       <div class="countdown-section">
         <span class="countdown-label">Next puzzle in</span>
         <span class="countdown-timer">{{ countdown }}</span>
-        <button id="share-btn" @click="$emit('share')">{{ shareButtonText }}</button>
       </div>
       <div></div>
     </div>
+    <button id="share-btn" @click="$emit('share')"><TileText :text="shareButtonText" /></button>
     <div class="rounds-summary-wrap">
     <table class="rounds-summary">
       <thead class="rounds-header">
@@ -51,6 +51,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import confetti from 'canvas-confetti';
 import { calculateScore, formatCountdown, getTimeUntilMidnightUTC, isAllSolved } from '../game.js';
+import TileText from './TileText.vue';
 
 const props = defineProps({
   results: { type: Array, required: true },
@@ -65,7 +66,7 @@ const props = defineProps({
 defineEmits(['share', 'show-word-list']);
 
 const solved = props.results.filter(r => r.answer.length > 0).length;
-const heading = solved === 10 ? 'Congratulations!' : solved >= 7 ? 'Great job!' : solved >= 4 ? 'Not bad!' : 'Better luck next time!';
+const heading = solved === 10 ? 'Congrats!' : solved >= 7 ? 'Great job!' : solved >= 4 ? 'Not bad!' : 'Better luck next time!';
 const score = calculateScore(props.results.filter(r => r.answer.length > 0));
 const totalLetters = score.totalLetters;
 

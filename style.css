@@ -361,25 +361,71 @@ header h1 {
 #share-btn {
   display: inline-flex;
   margin: 16px auto 0;
-  padding: 10px 16px;
-  background: #538d4e;
-  border: 2px solid #538d4e;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 16px;
-  font-weight: bold;
+  padding: 0;
+  background: none;
+  border: none;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 2px;
 }
 
-#share-btn:hover {
-  background: #6aaa64;
-  border-color: #6aaa64;
+#share-btn:hover .tile {
+  background: #538d4e;
+  border-color: #538d4e;
+  color: #fff;
 }
 
 #share-btn:active {
   transform: scale(0.98);
+}
+
+/* Tile text (letter-tile headings) */
+.tile-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tile-text-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.tile-text .tile {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  margin: 0;
+  flex: none;
+}
+
+.tile-animate {
+  opacity: 0;
+  transform: scale(0) rotateX(90deg);
+  animation: tile-pop-in 0.3s ease-out forwards;
+}
+
+@keyframes tile-pop-in {
+  0% { opacity: 0; transform: scale(0) rotateX(90deg); }
+  60% { opacity: 1; transform: scale(1.15) rotateX(0deg); }
+  100% { opacity: 1; transform: scale(1) rotateX(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-animate {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .tile-text .tile {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
 }
 
 /* Per-round results */

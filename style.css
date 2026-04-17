@@ -450,6 +450,7 @@ header h1 {
 }
 
 .rounds-header th {
+  font-size: 12px;
   font-weight: normal;
   color: #565758;
   padding-bottom: 4px;

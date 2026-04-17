@@ -1,6 +1,6 @@
 <template>
   <div id="score-screen">
-    <h2>{{ heading }}</h2>
+    <h2><TileText :text="heading" /></h2>
     <div class="stats-grid" :class="{ 'two-col': timerDisabled }">
       <div class="stat">Words Solved<br><span class="stat-value">{{ solved }} / 10</span></div>
       <div class="stat">Total Letters<br><span class="stat-value">{{ totalLetters }}</span></div>
@@ -9,7 +9,8 @@
       <div class="countdown-section">
         <span class="countdown-label">Next puzzle in</span>
         <span class="countdown-timer">{{ countdown }}</span>
-        <button id="share-btn" @click="$emit('share')">{{ shareButtonText }}</button>
+        <button id="share-btn" @click="$emit('share')"><TileText :text="shareButtonText" tile-class="offered" /></button>
+        <button id="share-btn-flat" class="share-btn-flat" @click="$emit('share')"><TileText :text="shareButtonText" /></button>
       </div>
       <div></div>
     </div>
@@ -51,6 +52,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import confetti from 'canvas-confetti';
 import { calculateScore, formatCountdown, getTimeUntilMidnightUTC, isAllSolved } from '../game.js';
+import TileText from './TileText.vue';
 
 const props = defineProps({
   results: { type: Array, required: true },

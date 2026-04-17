@@ -731,6 +731,28 @@ describe('App – typing during transition', () => {
     expect(wrapper.find('#message').text()).toMatch(/Possible:/);
   });
 
+  it('shows family friendly message when profane word is submitted', async () => {
+    const wrapper = mount(App, {
+      global: { stubs: { Transition: true } },
+    });
+    await flushPromises();
+
+    // Type a profane word via virtual keyboard
+    const keyboard = wrapper.findComponent(VirtualKeyboard);
+    for (const letter of 'shit') {
+      keyboard.vm.$emit('key-press', letter);
+      await flushPromises();
+    }
+
+    // Submit
+    keyboard.vm.$emit('key-press', 'Enter');
+    await flushPromises();
+
+    const messageEl = wrapper.find('#message');
+    expect(messageEl.text()).toBe('This is a family friendly game');
+    expect(messageEl.classes()).toContain('error');
+  });
+
   it('does not add input letters when typing during transition', async () => {
     const wrapper = mount(App, {
       global: { stubs: { Transition: true } },

@@ -18,6 +18,7 @@ import {
   getHintLetter,
   removeLetterAt,
   isAllSolved,
+  isProfane,
 } from '../src/game.js';
 
 // Minimal puzzle data for testing
@@ -1084,5 +1085,44 @@ describe('isAllSolved', () => {
   it('returns false for fewer than 10 results', () => {
     const results = Array.from({ length: 7 }, () => makeRound('coat'));
     expect(isAllSolved(results)).toBe(false);
+  });
+});
+
+describe('isProfane', () => {
+  it('returns true for known curse words', () => {
+    expect(isProfane('shit')).toBe(true);
+    expect(isProfane('fuck')).toBe(true);
+    expect(isProfane('ass')).toBe(true);
+  });
+
+  it('returns false for clean words', () => {
+    expect(isProfane('coat')).toBe(false);
+    expect(isProfane('hello')).toBe(false);
+    expect(isProfane('cart')).toBe(false);
+  });
+
+  it('is case-insensitive', () => {
+    expect(isProfane('SHIT')).toBe(true);
+    expect(isProfane('Fuck')).toBe(true);
+  });
+});
+
+describe('getSubmitFeedbackType – profanity', () => {
+  it('returns profanity for a profane word before checking validity', () => {
+    const round = {
+      root: 'hit',
+      expansions: { s: ['shit', 'hits'] },
+      offeredLetters: ['s', 'x', 'z'],
+    };
+    expect(getSubmitFeedbackType('shit', round)).toBe('profanity');
+  });
+
+  it('returns profanity regardless of word length', () => {
+    const round = {
+      root: 'cat',
+      expansions: { o: ['coat'] },
+      offeredLetters: ['o', 'r', 'z'],
+    };
+    expect(getSubmitFeedbackType('shit', round)).toBe('profanity');
   });
 });

@@ -1,6 +1,7 @@
 import { writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import lem from 'wink-lemmatizer';
+import { Filter } from 'bad-words';
 import { buildSignatureIndex, findExpansions } from '../src/words.js';
 
 const WORD_LIST_URL = 'https://raw.githubusercontent.com/cviebrock/wordlists/master/TWL06.txt';
@@ -90,6 +91,34 @@ export function filterTrivialInflections(puzzleData) {
       const mergedTrivial = [...(entry.trivialAnswers || []), ...trivialAnswers];
       return { ...entry, expansions: newExpansions, trivialAnswers: mergedTrivial };
     });
+  }
+  return result;
+}
+
+function buildProfanitySet() {
+  const filter = new Filter();
+  return new Set(filter.list.map(w => w.toLowerCase()));
+}
+
+export function filterProfanity(puzzleData, profaneWords) {
+  const profane = profaneWords || buildProfanitySet();
+  const check = w => profane.has(w.toLowerCase());
+  const result = {};
+  for (const [len, roots] of Object.entries(puzzleData)) {
+    result[len] = roots
+      .filter(entry => !check(entry.root))
+      .map(entry => {
+        const newExpansions = {};
+        for (const [key, words] of Object.entries(entry.expansions)) {
+          const clean = words.filter(w => !check(w));
+          if (clean.length > 0) newExpansions[key] = clean;
+        }
+        const trivialAnswers = (entry.trivialAnswers || []).filter(w => !check(w));
+        const commonWords = (entry.commonWords || []).filter(w => !check(w));
+        const commonKeys = (entry.commonKeys || []).filter(k => k in newExpansions);
+        return { ...entry, expansions: newExpansions, trivialAnswers, commonWords, commonKeys };
+      })
+      .filter(entry => Object.keys(entry.expansions).length >= MIN_EXPANSIONS);
   }
   return result;
 }
@@ -195,8 +224,16 @@ async function main() {
   const commonWords = await downloadCommonWords();
   const puzzleData = buildPuzzleData(dictionary);
 
+  console.log('Filtering profanity...');
+  const deProfaned = filterProfanity(puzzleData);
+  let totalProfaneRemoved = 0;
+  for (const [len, roots] of Object.entries(puzzleData)) {
+    totalProfaneRemoved += roots.length - (deProfaned[len] || []).length;
+  }
+  console.log(`  Removed ${totalProfaneRemoved} profane roots`);
+
   console.log('Filtering trivial inflections...');
-  const deTrivialized = filterTrivialInflections(puzzleData);
+  const deTrivialized = filterTrivialInflections(deProfaned);
   let totalTrivial = 0;
   for (const roots of Object.values(deTrivialized)) {
     for (const entry of roots) totalTrivial += entry.trivialAnswers.length;

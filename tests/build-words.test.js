@@ -6,6 +6,7 @@ import {
   filterByCommonWords,
   isTrivialInflection,
   filterTrivialInflections,
+  filterProfanity,
 } from '../scripts/build-words.js';
 
 const testDictionary = [
@@ -576,4 +577,112 @@ describe('filterTrivialInflections', () => {
     expect(result[3][0].trivialAnswers).toEqual(['cats']);
     expect(result[4][0].trivialAnswers).toEqual(['walking']);
   });
+});
+
+describe('filterProfanity', () => {
+  it('removes roots that are profane words', () => {
+    const puzzleData = {
+      4: [
+        { root: 'shit', expansions: { e: ['shite'], s: ['shits'], r: ['shirt'] }, trivialAnswers: [], commonKeys: ['e'], commonWords: ['shite'] },
+        { root: 'lamp', expansions: { c: ['clamp'], s: ['psalm'], e: ['ample'] }, trivialAnswers: [], commonKeys: ['c'], commonWords: ['clamp'] },
+      ],
+    };
+    const result = filterProfanity(puzzleData);
+    expect(result[4]).toHaveLength(1);
+    expect(result[4][0].root).toBe('lamp');
+  });
+
+  it('removes profane words from expansion lists', () => {
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: { o: ['coat', 'taco'], r: ['cart'], u: ['fuck', 'cute'] },
+        trivialAnswers: [],
+        commonKeys: ['o'],
+        commonWords: ['coat'],
+      }],
+    };
+    const result = filterProfanity(puzzleData);
+    expect(result[3][0].expansions.u).not.toContain('fuck');
+  });
+
+  it('removes expansion keys that become empty after profanity removal', () => {
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: { o: ['coat'], r: ['cart'], s: ['cast'], u: ['cunt'] },
+        trivialAnswers: [],
+        commonKeys: ['o'],
+        commonWords: ['coat'],
+      }],
+    };
+    const result = filterProfanity(puzzleData);
+    expect(result[3][0].expansions.u).toBeUndefined();
+    expect(result[3][0].expansions.o).toEqual(['coat']);
+  });
+
+  it('drops roots that fall below MIN_EXPANSIONS after profanity removal', () => {
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: { a: ['damn'], b: ['crap'], c: ['shit'] },
+        trivialAnswers: [],
+        commonKeys: [],
+        commonWords: [],
+      }],
+    };
+    const result = filterProfanity(puzzleData);
+    // All expansion words are profane, so all keys removed, root should be dropped
+    expect(result[3]).toHaveLength(0);
+  });
+
+  it('removes profane words from trivialAnswers', () => {
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: { o: ['coat'], r: ['cart'], s: ['cast'] },
+        trivialAnswers: ['shit', 'cats'],
+        commonKeys: ['o'],
+        commonWords: ['coat'],
+      }],
+    };
+    const result = filterProfanity(puzzleData);
+    expect(result[3][0].trivialAnswers).not.toContain('shit');
+    expect(result[3][0].trivialAnswers).toContain('cats');
+  });
+
+  it('removes profane words from commonWords', () => {
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: { o: ['coat'], r: ['cart'], s: ['cast'] },
+        trivialAnswers: [],
+        commonKeys: ['o', 'r', 's'],
+        commonWords: ['coat', 'shit', 'cast'],
+      }],
+    };
+    const result = filterProfanity(puzzleData);
+    expect(result[3][0].commonWords).not.toContain('shit');
+    expect(result[3][0].commonWords).toContain('coat');
+    expect(result[3][0].commonWords).toContain('cast');
+  });
+
+  it('preserves clean roots and words unchanged', () => {
+    const puzzleData = {
+      3: [{
+        root: 'cat',
+        expansions: { o: ['coat', 'taco'], r: ['cart'], s: ['cast', 'acts'] },
+        trivialAnswers: ['cats'],
+        commonKeys: ['o', 'r'],
+        commonWords: ['coat', 'cart'],
+      }],
+    };
+    const result = filterProfanity(puzzleData);
+    expect(result[3]).toHaveLength(1);
+    expect(result[3][0].root).toBe('cat');
+    expect(result[3][0].expansions.o).toEqual(['coat', 'taco']);
+    expect(result[3][0].expansions.r).toEqual(['cart']);
+    expect(result[3][0].expansions.s).toEqual(['cast', 'acts']);
+  });
+
 });

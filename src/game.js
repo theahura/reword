@@ -1,4 +1,11 @@
 import { getDailyRng, seededShuffle, seededPick } from './prng.js';
+import { Filter } from 'bad-words';
+
+const profanityFilter = new Filter();
+
+export function isProfane(word) {
+  return profanityFilter.isProfane(word);
+}
 
 export function isTrivialAnswer(answer, round) {
   const list = round.trivialAnswers;
@@ -190,6 +197,7 @@ export function matchTypedToTiles(typedLetters, rootLetters, offeredLetters) {
 }
 
 export function getSubmitFeedbackType(answer, round) {
+  if (isProfane(answer)) return 'profanity';
   const minLen = round.root.length + 1;
   const maxLen = round.root.length + (round.offeredLetters ? round.offeredLetters.length : 0);
   if (answer.length < minLen || answer.length > maxLen) return 'invalid-length';

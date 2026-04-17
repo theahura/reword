@@ -25,33 +25,39 @@
       <span class="countdown-timer">{{ countdown }}</span>
     </div>
     <button id="share-btn" @click="$emit('share')">{{ shareButtonText }}</button>
-    <div class="rounds-summary">
-      <div v-if="solveRates" class="round-result rounds-header">
-        <span class="round-num"></span>
-        <span class="round-root"></span>
-        <span class="round-arrow"></span>
-        <span class="round-answer"></span>
-        <span class="round-spacer"></span>
-        <span class="solve-rate-header">Solved by</span>
-      </div>
-      <div
-        v-for="(r, i) in results"
-        :key="i"
-        class="round-result"
-        :class="[r.answer.length > 0 ? 'solved' : 'skipped', r.hinted && r.answer.length > 0 ? 'hinted' : '']"
-      >
-        <span class="round-num">{{ i + 1 }}</span>
-        <span class="round-root">{{ r.root.toUpperCase() }}</span>
-        <span class="round-arrow">&rarr;</span>
-        <span class="round-answer">{{ r.answer.length > 0 ? r.answer.toUpperCase() : 'SKIPPED' }}</span>
-        <span class="round-spacer"></span>
-        <span v-if="solveRates" class="solve-rate">{{ solveRates[i] }}%</span>
-        <span
-          v-if="r.possibleAnswers && r.possibleAnswers.length"
-          class="more-answers-link"
-          @click="$emit('show-word-list', i)"
-        >{{ r.possibleAnswers.length }} {{ r.possibleAnswers.length === 1 ? 'word' : 'words' }} ›</span>
-      </div>
+    <div class="rounds-summary-wrap">
+    <table class="rounds-summary">
+      <thead class="rounds-header">
+        <tr>
+          <th class="round-num"></th>
+          <th class="round-root">Root</th>
+          <th class="round-arrow"></th>
+          <th class="round-answer">Result</th>
+          <th v-if="solveRates" class="solve-rate-header">Solved by</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="(r, i) in results"
+          :key="i"
+          class="round-result"
+          :class="[r.answer.length > 0 ? 'solved' : 'skipped', r.hinted && r.answer.length > 0 ? 'hinted' : '']"
+        >
+          <td class="round-num">{{ i + 1 }}</td>
+          <td class="round-root">{{ r.root.toUpperCase() }}</td>
+          <td class="round-arrow">&rarr;</td>
+          <td class="round-answer">
+            {{ r.answer.length > 0 ? r.answer.toUpperCase() : 'SKIPPED' }}
+            <span
+              v-if="r.possibleAnswers && r.possibleAnswers.length"
+              class="more-answers-link"
+              @click="$emit('show-word-list', i)"
+            >{{ r.possibleAnswers.length }} {{ r.possibleAnswers.length === 1 ? 'word' : 'words' }} ›</span>
+          </td>
+          <td v-if="solveRates" class="solve-rate">{{ solveRates[i] }}%</td>
+        </tr>
+      </tbody>
+    </table>
     </div>
   </div>
 </template>

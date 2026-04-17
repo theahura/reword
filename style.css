@@ -370,7 +370,7 @@ header h1 {
 }
 
 /* Per-round results */
-.rounds-summary {
+.rounds-summary-wrap {
   text-align: left;
   max-height: 300px;
   overflow-y: auto;
@@ -380,36 +380,39 @@ header h1 {
   scrollbar-color: #3a3a3c transparent;
 }
 
-.rounds-summary::-webkit-scrollbar {
+.rounds-summary-wrap::-webkit-scrollbar {
   width: 6px;
 }
 
-.rounds-summary::-webkit-scrollbar-track {
+.rounds-summary-wrap::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.rounds-summary::-webkit-scrollbar-thumb {
+.rounds-summary-wrap::-webkit-scrollbar-thumb {
   background: #3a3a3c;
   border-radius: 3px;
 }
 
-.rounds-summary::-webkit-scrollbar-thumb:hover {
+.rounds-summary-wrap::-webkit-scrollbar-thumb:hover {
   background: #538d4e;
-  padding-top: 12px;
+}
+
+.rounds-summary {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rounds-summary td,
+.rounds-summary th {
+  padding: 4px 4px;
 }
 
 .round-result {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 8px;
   font-size: 14px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid #222224;
 }
 
-.round-result:last-child {
-  border-bottom: none;
+.round-result:not(:last-child) td {
+  border-bottom: 1px solid #222224;
 }
 
 .round-result.solved {
@@ -444,10 +447,6 @@ header h1 {
   font-weight: bold;
 }
 
-.round-spacer {
-  flex: 1;
-}
-
 .solve-rate {
   font-size: 12px;
   color: #818384;
@@ -455,18 +454,17 @@ header h1 {
   text-align: right;
 }
 
-.solve-rate-header {
+.rounds-header th {
   font-size: 11px;
+  font-weight: normal;
   color: #565758;
-  min-width: 52px;
-  text-align: right;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  padding-bottom: 0;
 }
 
-.rounds-header {
-  border-bottom: none;
-  padding-bottom: 0;
+.solve-rate-header {
+  text-align: right;
 }
 
 /* Submit button */

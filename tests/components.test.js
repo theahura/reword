@@ -217,6 +217,19 @@ describe('ScoreScreen', () => {
     expect(wrapper.text()).toContain('Total Time');
   });
 
+  it('shows Solved By header only when solveRates is provided', () => {
+    const solveRates = [90, 80, 70];
+    const withRates = mount(ScoreScreen, {
+      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000, solveRates },
+    });
+    expect(withRates.find('.rounds-summary').text()).toContain('Solved by');
+
+    const withoutRates = mount(ScoreScreen, {
+      props: { results, dateStr: '2026-04-05', totalTimeMs: 12000, solveRates: null },
+    });
+    expect(withoutRates.find('.rounds-summary').text()).not.toContain('Solved by');
+  });
+
   it('applies hinted class to round results where hinted is true', () => {
     const hintedResults = [
       { answer: 'coat', timeMs: 5000, root: 'cat', possibleAnswers: ['coat', 'taco'], hinted: true },

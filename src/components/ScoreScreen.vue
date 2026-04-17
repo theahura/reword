@@ -1,6 +1,6 @@
 <template>
   <div id="score-screen">
-    <h2><TileText :text="heading" /></h2>
+    <h2><TileText :text="heading" animate /></h2>
     <div class="stats-grid" :class="{ 'two-col': timerDisabled }">
       <div class="stat">Words Solved<br><span class="stat-value">{{ solved }} / 10</span></div>
       <div class="stat">Total Letters<br><span class="stat-value">{{ totalLetters }}</span></div>

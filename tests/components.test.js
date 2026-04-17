@@ -340,6 +340,28 @@ describe('TileText', () => {
     const wrapper = mount(TileText, { props: { text: '' } });
     expect(wrapper.findAll('.tile')).toHaveLength(0);
   });
+
+  it('assigns staggered animation delays when animate is true', () => {
+    const wrapper = mount(TileText, { props: { text: 'Hi', animate: true } });
+    const tiles = wrapper.findAll('.tile');
+    expect(tiles).toHaveLength(2);
+    const delay0 = tiles[0].attributes('style');
+    const delay1 = tiles[1].attributes('style');
+    expect(delay0).toContain('animation-delay');
+    expect(delay1).toContain('animation-delay');
+    // Second tile should have a larger delay than the first
+    const parseDelay = (s) => parseFloat(s.match(/animation-delay:\s*([\d.]+)/)[1]);
+    expect(parseDelay(delay1)).toBeGreaterThan(parseDelay(delay0));
+  });
+
+  it('does not add animation delays when animate is false', () => {
+    const wrapper = mount(TileText, { props: { text: 'Hi', animate: false } });
+    const tiles = wrapper.findAll('.tile');
+    tiles.forEach(tile => {
+      const style = tile.attributes('style') || '';
+      expect(style).not.toContain('animation-delay');
+    });
+  });
 });
 
 describe('ScoreScreen tile heading', () => {

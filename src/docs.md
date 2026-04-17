@@ -17,7 +17,7 @@ Path: @/src
 - `firebase.js` initializes the Firebase app and exports a Firestore `db` instance for the `games-reword` project. This is the app's only Firebase entry point; all Firestore operations import `db` from here.
 - `leaderboard.js` provides per-round solve rate tracking via Firestore. Two functions: `submitGameResults(dateStr, completedRounds)` atomically increments a counter document at `daily/{dateStr}` with `totalGames` and per-round `round{i}Solved` fields using Firestore `increment()`; `fetchSolveRates(dateStr)` reads the counter document and returns an array of 10 percentages (or `null` if no data exists). Both are called by `App.vue` at game end -- submit is fire-and-forget, fetch populates `solveRates` for `ScoreScreen`. The Firestore security rules (`@/firestore.rules`) enforce that `totalGames` can only increment by 1 per write.
 - `sound.js` and `ui.js` are browser-side utilities consumed only by components
-- `@/style.css` at the project root contains all CSS, including component-specific styles (no scoped styles in `.vue` files)
+- `@/style.css` at the project root contains all CSS, including component-specific styles (no scoped styles in `.vue` files). All tile racks (gameplay `.tile-rack`, input area, and modal `.modal-tile-rack`) share a common responsive pattern: `flex-wrap: nowrap` with `flex: 0 1 <basis>` and `aspect-ratio: 1`, so tiles shrink to fit narrow viewports rather than wrapping onto new lines. The `@media (max-width: 420px)` breakpoint overrides `flex-basis` for each rack type.
 - `@/tests/components.test.js` tests both the pure game logic and the Vue components
 
 ### Core Implementation

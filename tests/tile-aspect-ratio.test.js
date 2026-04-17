@@ -44,3 +44,23 @@ describe('tile rack shrink-to-fit behavior', () => {
     expect(allProps).not.toMatch(/flex-wrap\s*:\s*wrap/);
   });
 });
+
+describe('modal tile rack shrink-to-fit behavior', () => {
+  it('modal tile rack does not wrap tiles to a new line', () => {
+    const rules = getRuleProperties(css, '.modal-tile-rack');
+    const allProps = rules.join('\n');
+    expect(allProps).not.toMatch(/flex-wrap\s*:\s*wrap/);
+  });
+
+  it('modal tiles have nonzero flex-shrink so they shrink on narrow screens', () => {
+    const rules = getRuleProperties(css, '.modal-tile-rack .tile');
+    const allProps = rules.join('\n');
+    expect(allProps).toMatch(/flex\s*:\s*\d+\s+[1-9]\d*\s+\S+|flex-shrink\s*:\s*[1-9]/);
+  });
+
+  it('modal tiles maintain square aspect ratio when shrinking', () => {
+    const rules = getRuleProperties(css, '.modal-tile-rack .tile');
+    const allProps = rules.join('\n');
+    expect(allProps).toMatch(/aspect-ratio\s*:\s*1/);
+  });
+});

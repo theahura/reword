@@ -31,7 +31,6 @@
         <tr>
           <th class="round-num"></th>
           <th class="round-root">Root</th>
-          <th class="round-arrow"></th>
           <th class="round-answer">Result</th>
           <th v-if="solveRates" class="solve-rate-header">Solved by</th>
           <th></th>
@@ -46,7 +45,6 @@
         >
           <td class="round-num">{{ i + 1 }}</td>
           <td class="round-root">{{ r.root.toUpperCase() }}</td>
-          <td class="round-arrow">&rarr;</td>
           <td class="round-answer">{{ r.answer.length > 0 ? r.answer.toUpperCase() : 'SKIPPED' }}</td>
           <td v-if="solveRates" class="solve-rate">{{ solveRates[i] }}%</td>
           <td

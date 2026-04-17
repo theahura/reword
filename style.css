@@ -441,19 +441,12 @@ header h1 {
   min-width: 70px;
 }
 
-.round-arrow {
-  color: #565758;
-}
-
 .round-answer {
   font-weight: bold;
 }
 
 .solve-rate {
-  font-size: 12px;
   color: #818384;
-  min-width: 52px;
-  text-align: right;
 }
 
 .rounds-header th {
@@ -465,9 +458,6 @@ header h1 {
   padding-bottom: 0;
 }
 
-.solve-rate-header {
-  text-align: right;
-}
 
 /* Submit button */
 #submit-btn {

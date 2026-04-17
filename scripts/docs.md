@@ -15,11 +15,13 @@ Path: @/scripts
   - **TWL06** scrabble dictionary from `cviebrock/wordlists` on GitHub
   - **50K common English words** from `david47k/top-english-wordlists` on GitHub
 - Depends on `wink-lemmatizer` (npm, devDependency) for morphology-aware detection of trivial inflections (plurals, past tense, comparatives, superlatives, present participles). Build-time use only -- not shipped to the browser bundle.
+- Depends on `bad-words` (npm, runtime dependency) for profanity filtering. Used at build time here for Set-based bulk filtering, and also used at runtime in `@/src/game.js` for input validation.
 - Tests live in `@/tests/build-words.test.js`
 
 ### Core Implementation
 
-- **Pipeline order**: download TWL06 dictionary -> download 50K common words -> `buildPuzzleData` -> `filterTrivialInflections` -> `filterByCommonWords` -> `trimPuzzleData` -> write JSON
+- **Pipeline order**: download TWL06 dictionary -> download 50K common words -> `buildPuzzleData` -> `filterProfanity` -> `filterTrivialInflections` -> `filterByCommonWords` -> `trimPuzzleData` -> write JSON
+- `filterProfanity` (exported for testability) removes offensive content using the `bad-words` npm package. It builds a `Set` of profane words from the library's word list for O(1) lookup. It removes profane root words entirely, strips profane words from `expansions`, `trivialAnswers`, and `commonWords` arrays, drops expansion keys that become empty, and drops any root that falls below `MIN_EXPANSIONS` (3) after filtering. Runs before trivial-inflection filtering so that profane words never appear in `trivialAnswers` either.
 - `buildPuzzleData` (exported for testability) iterates root word lengths 3-8. For each root in the dictionary, it finds all valid expansions (anagram words formed by adding letters). Roots with fewer than 3 expansion letter-groups are dropped. `maxExtra` is a uniform `3` for all root lengths -- this matches the game's runtime behavior of always offering 3 letters to the player, ensuring that words requiring all 3 offered letters are discoverable.
 - `filterTrivialInflections` (exported for testability) walks every expansion word of every root and partitions it via `isTrivialInflection(answer, root)`. Words classified as trivial inflections are removed from `expansions` and collected into a new per-entry `trivialAnswers` array. Expansion keys that become empty are dropped. Any pre-existing `trivialAnswers` on the entry are merged with the newly-detected ones.
 - `isTrivialInflection(answer, root)` (exported) decides whether an answer is a trivial morphological inflection of the root. Logic:
@@ -35,7 +37,7 @@ Path: @/scripts
 
 ### Things to Know
 
-- The common word filter runs *before* `trimPuzzleData`, and the trivial-inflection filter runs *before* the common word filter. Ordering matters: trivial inflections are removed first, so any `commonWords` annotation produced downstream only considers non-trivial expansion words. This prevents a root from "qualifying" solely because its plural is in the common word list.
+- The profanity filter runs first after `buildPuzzleData`, then trivial-inflection filter, then common word filter, then `trimPuzzleData`. Ordering matters: profanity is removed before trivial-inflection detection so that profane words never end up in `trivialAnswers`. Trivial inflections are removed before the common word filter so that a root cannot "qualify" solely because its plural is in the common word list.
 - **No caps or truncation are applied anywhere in the pipeline.** This is a deliberate project invariant codified in `@/.claude/CLAUDE.md`. Data size is explicitly not a concern; correctness (no silently dropped words) is the priority.
 - The trivial-inflection filter is the single source of truth for what counts as a "trivial suffix" at runtime. Runtime `@/src/game.js` does not re-derive morphology; it only reads `round.trivialAnswers`. Adding a new override requires regenerating `@/data/puzzles.json` via `npm run build-words`.
 - `filterByCommonWords` expects `commonWords` as a `Set` for O(1) lookup. The `downloadCommonWords` function returns a `Set`.

@@ -185,6 +185,13 @@ function handleSubmit() {
   const answer = state.inputLetters.join('');
   const feedback = getSubmitFeedbackType(answer, round);
 
+  if (feedback === 'profanity') {
+    message.value = 'This is a family friendly game';
+    messageType.value = 'error';
+    playSound('playWrong');
+    return;
+  }
+
   if (feedback === 'invalid-length') {
     const minLen = round.root.length + 1;
     const maxLen = round.root.length + round.offeredLetters.length;

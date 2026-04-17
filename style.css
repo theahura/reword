@@ -311,6 +311,17 @@ header h1 {
   margin-bottom: 24px;
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  row-gap: 28px;
+  margin-bottom: 24px;
+}
+
+.stats-grid.two-col {
+  grid-template-columns: 1fr 1fr;
+}
+
 #score-screen .stat {
   color: #818384;
   font-size: 14px;
@@ -328,6 +339,7 @@ header h1 {
   margin-bottom: 16px;
   color: #818384;
   font-size: 14px;
+  text-align: center;
 }
 
 .countdown-label {
@@ -347,11 +359,11 @@ header h1 {
 
 /* Share button */
 #share-btn {
-  display: block;
-  margin: 0 auto 16px;
-  padding: 12px 32px;
+  display: inline-flex;
+  margin: 16px auto 0;
+  padding: 10px 16px;
   background: #538d4e;
-  border: none;
+  border: 2px solid #538d4e;
   border-radius: 4px;
   color: #fff;
   font-size: 16px;
@@ -363,6 +375,7 @@ header h1 {
 
 #share-btn:hover {
   background: #6aaa64;
+  border-color: #6aaa64;
 }
 
 #share-btn:active {
@@ -370,7 +383,7 @@ header h1 {
 }
 
 /* Per-round results */
-.rounds-summary {
+.rounds-summary-wrap {
   text-align: left;
   max-height: 300px;
   overflow-y: auto;
@@ -380,36 +393,41 @@ header h1 {
   scrollbar-color: #3a3a3c transparent;
 }
 
-.rounds-summary::-webkit-scrollbar {
+.rounds-summary-wrap::-webkit-scrollbar {
   width: 6px;
 }
 
-.rounds-summary::-webkit-scrollbar-track {
+.rounds-summary-wrap::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.rounds-summary::-webkit-scrollbar-thumb {
+.rounds-summary-wrap::-webkit-scrollbar-thumb {
   background: #3a3a3c;
   border-radius: 3px;
 }
 
-.rounds-summary::-webkit-scrollbar-thumb:hover {
+.rounds-summary-wrap::-webkit-scrollbar-thumb:hover {
   background: #538d4e;
-  padding-top: 12px;
+}
+
+.rounds-summary {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.rounds-summary td,
+.rounds-summary th {
+  padding: 4px 4px;
 }
 
 .round-result {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 8px;
   font-size: 14px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid #222224;
 }
 
-.round-result:last-child {
-  border-bottom: none;
+.round-result:not(:last-child) td {
+  border-bottom: 1px solid #222224;
 }
 
 .round-result.solved {
@@ -436,38 +454,23 @@ header h1 {
   min-width: 70px;
 }
 
-.round-arrow {
-  color: #565758;
-}
-
 .round-answer {
   font-weight: bold;
 }
 
-.round-spacer {
-  flex: 1;
-}
-
 .solve-rate {
-  font-size: 12px;
   color: #818384;
-  min-width: 52px;
-  text-align: right;
 }
 
-.solve-rate-header {
-  font-size: 11px;
+.rounds-header th {
+  font-size: 12px;
+  font-weight: normal;
   color: #565758;
-  min-width: 52px;
-  text-align: right;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  padding-bottom: 4px;
 }
 
-.rounds-header {
-  border-bottom: none;
-  padding-bottom: 0;
-}
 
 /* Submit button */
 #submit-btn {

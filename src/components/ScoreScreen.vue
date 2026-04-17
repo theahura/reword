@@ -9,11 +9,10 @@
       <div class="countdown-section">
         <span class="countdown-label">Next puzzle in</span>
         <span class="countdown-timer">{{ countdown }}</span>
-        <button id="share-btn" @click="$emit('share')"><TileText :text="shareButtonText" tile-class="offered" /></button>
-        <button id="share-btn-flat" class="share-btn-flat" @click="$emit('share')"><TileText :text="shareButtonText" /></button>
       </div>
       <div></div>
     </div>
+    <button id="share-btn" @click="$emit('share')"><TileText :text="shareButtonText" /></button>
     <div class="rounds-summary-wrap">
     <table class="rounds-summary">
       <thead class="rounds-header">
@@ -67,7 +66,7 @@ const props = defineProps({
 defineEmits(['share', 'show-word-list']);
 
 const solved = props.results.filter(r => r.answer.length > 0).length;
-const heading = solved === 10 ? 'Congratulations!' : solved >= 7 ? 'Great job!' : solved >= 4 ? 'Not bad!' : 'Better luck next time!';
+const heading = solved === 10 ? 'Congrats!' : solved >= 7 ? 'Great job!' : solved >= 4 ? 'Not bad!' : 'Better luck next time!';
 const score = calculateScore(props.results.filter(r => r.answer.length > 0));
 const totalLetters = score.totalLetters;
 

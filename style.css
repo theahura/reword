@@ -361,17 +361,16 @@ header h1 {
 #share-btn {
   display: inline-flex;
   margin: 16px auto 0;
-  padding: 10px 16px;
-  background: #538d4e;
-  border: 2px solid #538d4e;
-  border-radius: 4px;
-  color: #fff;
+  padding: 0;
+  background: none;
+  border: none;
   cursor: pointer;
 }
 
-#share-btn:hover {
-  background: #6aaa64;
-  border-color: #6aaa64;
+#share-btn:hover .tile {
+  background: #538d4e;
+  border-color: #538d4e;
+  color: #fff;
 }
 
 #share-btn:active {
@@ -399,30 +398,6 @@ header h1 {
   font-size: 16px;
   margin: 0;
   flex: none;
-}
-
-#share-btn .tile-text .tile {
-  border-color: rgba(255,255,255,0.3);
-}
-
-/* Flat share button variant (no green container) */
-.share-btn-flat {
-  display: inline-flex;
-  margin: 8px auto 0;
-  padding: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.share-btn-flat:hover .tile {
-  background: #538d4e;
-  border-color: #538d4e;
-  color: #fff;
-}
-
-.share-btn-flat:active {
-  transform: scale(0.98);
 }
 
 @media (max-width: 420px) {

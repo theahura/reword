@@ -34,6 +34,7 @@
           <th class="round-arrow"></th>
           <th class="round-answer">Result</th>
           <th v-if="solveRates" class="solve-rate-header">Solved by</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -46,15 +47,13 @@
           <td class="round-num">{{ i + 1 }}</td>
           <td class="round-root">{{ r.root.toUpperCase() }}</td>
           <td class="round-arrow">&rarr;</td>
-          <td class="round-answer">
-            {{ r.answer.length > 0 ? r.answer.toUpperCase() : 'SKIPPED' }}
-            <span
-              v-if="r.possibleAnswers && r.possibleAnswers.length"
-              class="more-answers-link"
-              @click="$emit('show-word-list', i)"
-            >{{ r.possibleAnswers.length }} {{ r.possibleAnswers.length === 1 ? 'word' : 'words' }} ›</span>
-          </td>
+          <td class="round-answer">{{ r.answer.length > 0 ? r.answer.toUpperCase() : 'SKIPPED' }}</td>
           <td v-if="solveRates" class="solve-rate">{{ solveRates[i] }}%</td>
+          <td
+            v-if="r.possibleAnswers && r.possibleAnswers.length"
+            class="more-answers-link"
+            @click="$emit('show-word-list', i)"
+          >{{ r.possibleAnswers.length }} {{ r.possibleAnswers.length === 1 ? 'word' : 'words' }} ›</td>
         </tr>
       </tbody>
     </table>

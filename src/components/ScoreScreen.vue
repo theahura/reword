@@ -1,6 +1,6 @@
 <template>
   <div id="score-screen">
-    <h2>Congratulations!</h2>
+    <h2>{{ heading }}</h2>
     <div class="stats-row">
       <div class="stat">Words Solved<br><span class="stat-value">{{ solved }} / 10</span></div>
       <div class="stat">Total Letters<br><span class="stat-value">{{ totalLetters }}</span></div>
@@ -69,6 +69,7 @@ const props = defineProps({
 defineEmits(['share', 'show-word-list']);
 
 const solved = props.results.filter(r => r.answer.length > 0).length;
+const heading = solved === 10 ? 'Congratulations!' : solved >= 7 ? 'Great job!' : solved >= 4 ? 'Not bad!' : 'Better luck next time!';
 const score = calculateScore(props.results.filter(r => r.answer.length > 0));
 const totalLetters = score.totalLetters;
 

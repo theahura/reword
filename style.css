@@ -359,7 +359,8 @@ header h1 {
 
 /* Share button */
 #share-btn {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   margin: 16px auto 0;
   padding: 0;
   background: none;
@@ -367,10 +368,15 @@ header h1 {
   cursor: pointer;
 }
 
-#share-btn:hover .tile {
+#share-btn .share-tile {
   background: #538d4e;
   border-color: #538d4e;
   color: #fff;
+}
+
+#share-btn:hover .share-tile {
+  background: #6aaa64;
+  border-color: #6aaa64;
 }
 
 #share-btn:active {
@@ -755,8 +761,6 @@ header h1 {
 
   #share-btn {
     min-height: 48px;
-    width: 100%;
-    font-size: 18px;
   }
 }
 

@@ -380,13 +380,16 @@ describe('ScoreScreen tile heading', () => {
     expect(heading.findAll('.tile').length).toBeGreaterThan(0);
   });
 
-  it('renders share button text as tiles', () => {
+  it('renders share button text as green tiles', () => {
     const wrapper = mount(ScoreScreen, {
       props: { results, dateStr: '2026-04-05', totalTimeMs: 12000 },
     });
     const shareBtn = wrapper.find('#share-btn');
     const tilesInButton = shareBtn.findAll('.tile');
     expect(tilesInButton.length).toBeGreaterThan(0);
+    tilesInButton.forEach(tile => {
+      expect(tile.classes()).toContain('share-tile');
+    });
   });
 });
 

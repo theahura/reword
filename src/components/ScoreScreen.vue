@@ -12,7 +12,7 @@
       </div>
       <div></div>
     </div>
-    <button id="share-btn" @click="$emit('share')"><TileText :text="shareButtonText" tileClass="share-tile" /></button>
+    <button id="share-btn" @click="$emit('share')">{{ shareButtonText }}</button>
     <div class="rounds-summary-wrap">
     <table class="rounds-summary">
       <thead class="rounds-header">

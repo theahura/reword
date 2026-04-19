@@ -380,16 +380,14 @@ describe('ScoreScreen tile heading', () => {
     expect(heading.findAll('.tile').length).toBeGreaterThan(0);
   });
 
-  it('renders share button text as green tiles', () => {
+  it('renders share button as a standard button with plain text', () => {
     const wrapper = mount(ScoreScreen, {
       props: { results, dateStr: '2026-04-05', totalTimeMs: 12000 },
     });
     const shareBtn = wrapper.find('#share-btn');
-    const tilesInButton = shareBtn.findAll('.tile');
-    expect(tilesInButton.length).toBeGreaterThan(0);
-    tilesInButton.forEach(tile => {
-      expect(tile.classes()).toContain('share-tile');
-    });
+    expect(shareBtn.exists()).toBe(true);
+    expect(shareBtn.text()).toBe('Share Results');
+    expect(shareBtn.findAll('.tile')).toHaveLength(0);
   });
 });
 

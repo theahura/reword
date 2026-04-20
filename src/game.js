@@ -1,6 +1,9 @@
 import { getDailyRng, seededShuffle, seededPick } from './prng.js';
 import { Filter } from 'bad-words';
 
+const MIN_ANSWERS_PER_ROUND = 3;
+const MAX_OFFERED_LETTER_RETRIES = 20;
+
 const profanityFilter = new Filter();
 
 export function isProfane(word) {
@@ -77,10 +80,21 @@ export function selectDailyPuzzle(puzzleData, dateStr) {
   }
   rounds.push(...pick(sevenPlus, 1));
 
-  return rounds.map(entry => ({
-    ...entry,
-    offeredLetters: getOfferedLetters(entry, rng),
-  }));
+  return rounds.map(entry => {
+    let bestLetters = getOfferedLetters(entry, rng);
+    let bestCount = getAnswersForRound({ ...entry, offeredLetters: bestLetters }).length;
+
+    for (let attempt = 0; attempt < MAX_OFFERED_LETTER_RETRIES && bestCount < MIN_ANSWERS_PER_ROUND; attempt++) {
+      const candidate = getOfferedLetters(entry, rng);
+      const count = getAnswersForRound({ ...entry, offeredLetters: candidate }).length;
+      if (count > bestCount) {
+        bestLetters = candidate;
+        bestCount = count;
+      }
+    }
+
+    return { ...entry, offeredLetters: bestLetters };
+  });
 }
 
 export function getOfferedLetters(puzzleEntry, rng) {

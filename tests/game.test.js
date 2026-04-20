@@ -92,6 +92,83 @@ describe('selectDailyPuzzle', () => {
     // (With our small test data, they'll likely share some, but the offered letters should differ)
     expect(puzzle1).not.toEqual(puzzle2);
   });
+
+  it('every round has at least 3 valid answers', () => {
+    // Each entry has at least one key with 3+ words, so a single valid key guarantees 3 answers
+    const richPuzzleData = {
+      3: [
+        { root: 'cat', expansions: { o: ['coat', 'taco', 'octa'], r: ['cart', 'arct'], s: ['cast', 'acts', 'scat'] } },
+        { root: 'bat', expansions: { e: ['beat', 'beta', 'bate'], s: ['stab', 'tabs', 'bats'] } },
+        { root: 'pen', expansions: { a: ['nape', 'pane', 'neap'], d: ['pend', 'dpen'], s: ['pens', 'neps', 'snep'] } },
+        { root: 'net', expansions: { s: ['nest', 'tens', 'sent'], a: ['ante', 'etna', 'neat'] } },
+      ],
+      4: [
+        { root: 'rind', expansions: { e: ['diner', 'redin', 'nired'], k: ['drink', 'rinkd'], a: ['nadir', 'drain', 'ranid'] } },
+        { root: 'tone', expansions: { s: ['stone', 'notes', 'onset'], r: ['tenor', 'noter', 'trone'] } },
+        { root: 'lamp', expansions: { s: ['psalm', 'lamps', 'palms'], e: ['maple', 'ample', 'leamp'] } },
+        { root: 'mare', expansions: { d: ['dream', 'armed', 'derma'], s: ['smear', 'mares', 'reams'] } },
+      ],
+      5: [
+        { root: 'heart', expansions: { d: ['thread', 'dearth', 'hatred'], w: ['wreath', 'thawer', 'wather'] } },
+        { root: 'bread', expansions: { s: ['breads', 'beards', 'sabred'], y: ['brayed', 'byreda'] } },
+        { root: 'flame', expansions: { s: ['flames', 'falsme', 'fleams'], r: ['flamre', 'rflame', 'malfer'] } },
+        { root: 'plant', expansions: { e: ['planet', 'platen', 'plante'], s: ['plants', 'splant', 'planst'] } },
+      ],
+      6: [
+        { root: 'garden', expansions: { e: ['angered', 'enraged', 'grenade'], i: ['reading', 'gradine', 'grained'] } },
+        { root: 'listen', expansions: { g: ['singlet', 'tingler', 'glisten'], r: ['linters', 'slinter', 'rintels'] } },
+      ],
+      7: [
+        { root: 'strange', expansions: { r: ['granters', 'stranger', 'regrastr'], s: ['stranges', 'gantress', 'starnges'] } },
+        { root: 'pointed', expansions: { s: ['deposits', 'topsides', 'dopiest'], r: ['diopters', 'peridots', 'proteids'] } },
+      ],
+    };
+
+    for (const date of ['2026-01-01', '2026-06-15', '2026-12-31', '2027-03-20']) {
+      const puzzle = selectDailyPuzzle(richPuzzleData, date);
+      for (const round of puzzle) {
+        const answers = getAnswersForRound(round);
+        expect(answers.length).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it('handles gracefully when a puzzle entry cannot produce enough answers', () => {
+    // Entry with only 1 expansion key — impossible to get 3 answers
+    const limitedPuzzleData = {
+      3: [
+        { root: 'cat', expansions: { o: ['coat'] } },
+        { root: 'bat', expansions: { e: ['beat'] } },
+        { root: 'hat', expansions: { s: ['hats'] } },
+        { root: 'mat', expansions: { e: ['mate'] } },
+      ],
+      4: [
+        { root: 'rind', expansions: { e: ['diner'] } },
+        { root: 'tone', expansions: { s: ['stone'] } },
+        { root: 'lamp', expansions: { c: ['clamp'] } },
+        { root: 'mare', expansions: { d: ['dream'] } },
+      ],
+      5: [
+        { root: 'heart', expansions: { d: ['thread'] } },
+        { root: 'bread', expansions: { k: ['barked'] } },
+        { root: 'flame', expansions: { r: ['flamre'] } },
+        { root: 'plant', expansions: { e: ['planet'] } },
+      ],
+      6: [
+        { root: 'garden', expansions: { e: ['angered'] } },
+      ],
+      7: [
+        { root: 'strange', expansions: { r: ['granters'] } },
+      ],
+    };
+
+    // Should not crash, just produce rounds with whatever best answers it can
+    const puzzle = selectDailyPuzzle(limitedPuzzleData, '2026-04-05');
+    expect(puzzle).toHaveLength(10);
+    for (const round of puzzle) {
+      expect(round.offeredLetters).toHaveLength(3);
+    }
+  });
 });
 
 describe('isTrivialAnswer', () => {

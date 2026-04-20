@@ -28,7 +28,7 @@ Path: @/data
   }
   ```
 - Expansion keys represent the sorted extra letters added to the root. Single-character keys mean one letter was added; multi-character keys (e.g., `"el"`) mean multiple letters were added.
-- No caps or truncation are applied -- all roots and all words per expansion key are preserved. This is a deliberate project invariant (see `@/.claude/CLAUDE.md`).
+- Roots per length bucket are capped to 500 by `trimPuzzleData` in `@/scripts/build-words.js`, prioritizing roots with the most single-letter expansion keys. All words within each surviving root's expansions are preserved without truncation.
 - Each entry includes three annotations produced during build and preserved through `trimPuzzleData`:
   - `trivialAnswers`: words that are trivial morphological inflections of the root (plurals, past tense, comparatives, superlatives, present participles). These words are already excluded from `expansions`; the two sets are disjoint. Populated at build time by `filterTrivialInflections` in `@/scripts/build-words.js` using `wink-lemmatizer`. Consumed at runtime by `isTrivialAnswer` in `@/src/game.js` to show the `'trivial-suffix'` feedback message when a player types a trivial inflection.
   - `commonKeys`: which expansion keys contain at least one word from the top 50K common English words. Used by `getOfferedLetters()` in `@/src/game.js` to bias letter selection toward common word answers.

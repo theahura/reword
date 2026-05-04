@@ -475,6 +475,83 @@ describe('WordListModal', () => {
     const closeBtnInBody = modalBody.find('[data-testid="close-word-list"]');
     expect(closeBtnInBody.exists()).toBe(false);
   });
+
+  it('renders popularity percentage next to each word when answerCounts provided', () => {
+    const wrapper = mount(WordListModal, {
+      props: {
+        round,
+        roundIndex: 0,
+        answerCounts: { coat: 80, taco: 14, cart: 6 },
+      },
+    });
+    const wordRows = wrapper.findAll('[data-testid="word-row"]');
+    const text = wordRows.map(r => r.text()).join(' ');
+    expect(text).toContain('80%');
+    expect(text).toContain('14%');
+    expect(text).toContain('6%');
+  });
+
+  it('sorts words by descending popularity when answerCounts provided', () => {
+    const wrapper = mount(WordListModal, {
+      props: {
+        round,
+        roundIndex: 0,
+        answerCounts: { taco: 100, cart: 50, coat: 10 },
+      },
+    });
+    const wordRows = wrapper.findAll('[data-testid="word-row"]');
+    expect(wordRows[0].text()).toContain('T');
+    expect(wordRows[0].text()).toContain('A');
+    expect(wordRows[0].text()).toContain('C');
+    expect(wordRows[0].text()).toContain('O');
+    // taco has the highest count (100), then cart (50), then coat (10)
+    const firstWordTiles = wordRows[0].findAll('.tile').map(t => t.text()).join('');
+    const secondWordTiles = wordRows[1].findAll('.tile').map(t => t.text()).join('');
+    const thirdWordTiles = wordRows[2].findAll('.tile').map(t => t.text()).join('');
+    expect(firstWordTiles).toBe('TACO');
+    expect(secondWordTiles).toBe('CART');
+    expect(thirdWordTiles).toBe('COAT');
+  });
+
+  it('still renders words with zero submissions when answerCounts provided', () => {
+    const wrapper = mount(WordListModal, {
+      props: {
+        round,
+        roundIndex: 0,
+        answerCounts: { coat: 50 },
+      },
+    });
+    const wordRows = wrapper.findAll('[data-testid="word-row"]');
+    expect(wordRows.length).toBe(3);
+    const text = wordRows.map(r => r.text()).join(' ');
+    expect(text).toContain('0%');
+  });
+
+  it('does not render percentages when answerCounts is null', () => {
+    const wrapper = mount(WordListModal, {
+      props: { round, roundIndex: 0, answerCounts: null },
+    });
+    const wordRows = wrapper.findAll('[data-testid="word-row"]');
+    const text = wordRows.map(r => r.text()).join(' ');
+    expect(text).not.toContain('%');
+  });
+
+  it('marks the player\'s own answer in the breakdown', () => {
+    const roundWithAnswer = { ...round, answer: 'taco' };
+    const wrapper = mount(WordListModal, {
+      props: {
+        round: roundWithAnswer,
+        roundIndex: 0,
+        answerCounts: { coat: 50, taco: 30, cart: 20 },
+      },
+    });
+    const wordRows = wrapper.findAll('[data-testid="word-row"]');
+    const playerRow = wordRows.find(r => {
+      const tiles = r.findAll('.tile').map(t => t.text()).join('');
+      return tiles === 'TACO';
+    });
+    expect(playerRow.classes()).toContain('player-answer');
+  });
 });
 
 describe('GameBoard', () => {

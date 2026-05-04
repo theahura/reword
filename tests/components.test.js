@@ -818,6 +818,203 @@ describe('App – typing during transition', () => {
   });
 });
 
+describe('App – time penalty for incorrect answers', () => {
+  const puzzleData = {
+    3: [
+      { root: 'cat', expansions: { o: ['coat', 'taco'], r: ['cart'] } },
+      { root: 'dog', expansions: { s: ['gods'] } },
+      { root: 'pen', expansions: { i: ['pine'] } },
+      { root: 'bat', expansions: { e: ['beat'] } },
+    ],
+    4: [
+      { root: 'rind', expansions: { e: ['diner'] } },
+      { root: 'lamp', expansions: { c: ['clamp'] } },
+      { root: 'tone', expansions: { s: ['stone'] } },
+      { root: 'mare', expansions: { d: ['dream'] } },
+    ],
+    5: [
+      { root: 'bread', expansions: { k: ['barked'] } },
+      { root: 'flame', expansions: { r: ['flamer'] } },
+      { root: 'plant', expansions: { e: ['planet'] } },
+      { root: 'heart', expansions: { d: ['thread'] } },
+    ],
+    6: [
+      { root: 'garden', expansions: { e: ['angered'] } },
+      { root: 'listen', expansions: { g: ['singlet'] } },
+    ],
+    7: [
+      { root: 'strange', expansions: { r: ['granters'] } },
+      { root: 'pointed', expansions: { s: ['deposits'] } },
+    ],
+  };
+
+  function parseTimerSeconds(text) {
+    const match = text.match(/(\d+):(\d+)/);
+    if (!match) return null;
+    return Number(match[1]) * 60 + Number(match[2]);
+  }
+
+  let fetchSpy;
+  let storageGetSpy;
+
+  beforeEach(() => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      json: () => Promise.resolve(puzzleData),
+    });
+    storageGetSpy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {});
+    vi.useFakeTimers({ now: new Date('2026-01-15T12:00:00Z') });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('subtracts 5 seconds from the timer when a wrong answer is submitted', async () => {
+    const wrapper = mount(App, { global: { stubs: { Transition: true } } });
+    await flushPromises();
+
+    const keyboard = wrapper.findComponent(VirtualKeyboard);
+
+    // Start the timer with an initial keypress
+    keyboard.vm.$emit('key-press', 'z');
+    await flushPromises();
+    vi.advanceTimersByTime(100);
+    await flushPromises();
+
+    const beforeSeconds = parseTimerSeconds(wrapper.find('.timer-display').text());
+    expect(beforeSeconds).not.toBeNull();
+
+    // Build a wrong answer (gibberish that fits the length window) and submit
+    keyboard.vm.$emit('key-press', 'z');
+    keyboard.vm.$emit('key-press', 'z');
+    keyboard.vm.$emit('key-press', 'z');
+    await flushPromises();
+    keyboard.vm.$emit('key-press', 'Enter');
+    await flushPromises();
+    vi.advanceTimersByTime(100);
+    await flushPromises();
+
+    const afterSeconds = parseTimerSeconds(wrapper.find('.timer-display').text());
+    expect(beforeSeconds - afterSeconds).toBe(5);
+  });
+
+  it('shows a -5s penalty badge in the timer area on wrong submission', async () => {
+    const wrapper = mount(App, { global: { stubs: { Transition: true } } });
+    await flushPromises();
+
+    const keyboard = wrapper.findComponent(VirtualKeyboard);
+    for (const ch of 'zzzz') {
+      keyboard.vm.$emit('key-press', ch);
+      await flushPromises();
+    }
+    keyboard.vm.$emit('key-press', 'Enter');
+    await flushPromises();
+
+    const badge = wrapper.find('[data-testid="time-penalty-badge"]');
+    expect(badge.exists()).toBe(true);
+    expect(badge.text()).toContain('-5');
+  });
+
+  it('retriggers the penalty badge on consecutive wrong submissions', async () => {
+    const wrapper = mount(App, { global: { stubs: { Transition: true } } });
+    await flushPromises();
+
+    const keyboard = wrapper.findComponent(VirtualKeyboard);
+
+    // First wrong submission
+    for (const ch of 'zzzz') {
+      keyboard.vm.$emit('key-press', ch);
+      await flushPromises();
+    }
+    keyboard.vm.$emit('key-press', 'Enter');
+    await flushPromises();
+    const firstKey = wrapper.find('[data-testid="time-penalty-badge"]').attributes('data-penalty-key');
+    expect(firstKey).toBeTruthy();
+
+    // Clear input by backspacing four times, then second wrong submission
+    for (let i = 0; i < 4; i++) {
+      keyboard.vm.$emit('key-press', 'Backspace');
+      await flushPromises();
+    }
+    for (const ch of 'qqqq') {
+      keyboard.vm.$emit('key-press', ch);
+      await flushPromises();
+    }
+    keyboard.vm.$emit('key-press', 'Enter');
+    await flushPromises();
+
+    const secondKey = wrapper.find('[data-testid="time-penalty-badge"]').attributes('data-penalty-key');
+    expect(secondKey).toBeTruthy();
+    expect(secondKey).not.toBe(firstKey);
+  });
+
+  it('does not penalize when timer is disabled', async () => {
+    vi.restoreAllMocks();
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      json: () => Promise.resolve(puzzleData),
+    });
+    vi.stubGlobal('localStorage', {
+      getItem: (key) => key === 'reword-timer-disabled' ? '1' : null,
+      setItem: () => {},
+      removeItem: () => {},
+      clear: () => {},
+      key: () => null,
+      length: 0,
+    });
+
+    const wrapper = mount(App, { global: { stubs: { Transition: true } } });
+    await flushPromises();
+
+    // Confirm the timer is actually disabled (the timer-display span is omitted when disabled)
+    expect(wrapper.find('.timer-display').exists()).toBe(false);
+
+    const keyboard = wrapper.findComponent(VirtualKeyboard);
+    for (const ch of 'zzzz') {
+      keyboard.vm.$emit('key-press', ch);
+      await flushPromises();
+    }
+    keyboard.vm.$emit('key-press', 'Enter');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="time-penalty-badge"]').exists()).toBe(false);
+  });
+
+  it('clamps the deduction so the timer does not display a negative value', async () => {
+    const wrapper = mount(App, { global: { stubs: { Transition: true } } });
+    await flushPromises();
+
+    const keyboard = wrapper.findComponent(VirtualKeyboard);
+
+    keyboard.vm.$emit('key-press', 'z');
+    await flushPromises();
+    vi.advanceTimersByTime(100);
+    await flushPromises();
+
+    // Read the actual round time from the rendered timer, then advance to leave ~3 seconds remaining.
+    const initialSeconds = parseTimerSeconds(wrapper.find('.timer-display').text());
+    const burnMs = (initialSeconds - 3) * 1000;
+    vi.advanceTimersByTime(burnMs);
+    await flushPromises();
+
+    keyboard.vm.$emit('key-press', 'z');
+    keyboard.vm.$emit('key-press', 'z');
+    keyboard.vm.$emit('key-press', 'z');
+    await flushPromises();
+    keyboard.vm.$emit('key-press', 'Enter');
+    await flushPromises();
+    vi.advanceTimersByTime(100);
+    await flushPromises();
+
+    const text = wrapper.find('.timer-display').text();
+    const seconds = parseTimerSeconds(text);
+    expect(seconds).toBeGreaterThanOrEqual(0);
+    expect(text).not.toMatch(/-/);
+  });
+});
+
 describe('LoadingScreen', () => {
   it('renders a loading indicator icon', () => {
     const wrapper = mount(LoadingScreen);

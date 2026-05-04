@@ -8,13 +8,19 @@ service cloud.firestore {
         request.resource.data.keys().hasOnly(
           ['totalGames', 'round0Solved', 'round1Solved', 'round2Solved',
            'round3Solved', 'round4Solved', 'round5Solved', 'round6Solved',
-           'round7Solved', 'round8Solved', 'round9Solved']);
+           'round7Solved', 'round8Solved', 'round9Solved',
+           'round0Answers', 'round1Answers', 'round2Answers',
+           'round3Answers', 'round4Answers', 'round5Answers', 'round6Answers',
+           'round7Answers', 'round8Answers', 'round9Answers']);
       allow update: if
         request.resource.data.totalGames == resource.data.totalGames + 1 &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(
           ['totalGames', 'round0Solved', 'round1Solved', 'round2Solved',
            'round3Solved', 'round4Solved', 'round5Solved', 'round6Solved',
-           'round7Solved', 'round8Solved', 'round9Solved']);
+           'round7Solved', 'round8Solved', 'round9Solved',
+           'round0Answers', 'round1Answers', 'round2Answers',
+           'round3Answers', 'round4Answers', 'round5Answers', 'round6Answers',
+           'round7Answers', 'round8Answers', 'round9Answers']);
       allow delete: if false;
     }
   }

@@ -65,6 +65,7 @@
         v-if="wordListRoundIndex != null"
         :round="state.completedRounds[wordListRoundIndex]"
         :round-index="wordListRoundIndex"
+        :answer-counts="answerCounts ? answerCounts[wordListRoundIndex] : null"
         @close="wordListRoundIndex = null"
       />
     </template>
@@ -168,6 +169,7 @@ const runningLetterScore = computed(() => state.completedRounds.reduce((sum, r) 
 const streakStats = ref(null);
 const lifetimeStats = ref(null);
 const solveRates = ref(null);
+const answerCounts = ref(null);
 
 function applyTimePenalty() {
   if (timerDisabled.value || state.roundDeadline === null) return;
@@ -360,7 +362,12 @@ function showScore(savedResults) {
   const submitted = (!savedResults && dateStr.value)
     ? submitGameResults(dateStr.value, state.completedRounds).catch(() => {})
     : Promise.resolve();
-  submitted.then(() => fetchSolveRates(dateStr.value)).then(rates => { solveRates.value = rates; }).catch(() => {});
+  submitted.then(() => fetchSolveRates(dateStr.value)).then(result => {
+    if (result) {
+      solveRates.value = result.rates;
+      answerCounts.value = result.answerCounts;
+    }
+  }).catch(() => {});
 
   // Load streak stats for display
   try {

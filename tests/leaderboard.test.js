@@ -29,9 +29,9 @@ beforeEach(async () => {
 })
 
 describe('submitGameResults', () => {
-  const makeRounds = (solvedIndices) =>
+  const makeRounds = (solvedIndices, answerByIndex = {}) =>
     Array.from({ length: 10 }, (_, i) => ({
-      answer: solvedIndices.includes(i) ? 'word' : '',
+      answer: solvedIndices.includes(i) ? (answerByIndex[i] || 'word') : '',
       timeMs: 5000,
       root: 'test',
       offeredLetters: ['a', 'b', 'c'],
@@ -93,6 +93,26 @@ describe('submitGameResults', () => {
 
     expect(mockDoc).toHaveBeenCalledWith({}, 'daily', '2026-04-15')
   })
+
+  it('records the submitted answer under round{N}Answers for each solved round', async () => {
+    const rounds = makeRounds([0, 2, 5], { 0: 'chin', 2: 'baste', 5: 'diner' })
+    await submitGameResults('2026-04-15', rounds)
+
+    const [, data] = mockSetDoc.mock.calls[0]
+    expect(data.round0Answers).toEqual({ chin: { __increment: 1 } })
+    expect(data.round2Answers).toEqual({ baste: { __increment: 1 } })
+    expect(data.round5Answers).toEqual({ diner: { __increment: 1 } })
+  })
+
+  it('does not record answers for skipped rounds', async () => {
+    const rounds = makeRounds([0, 2, 5])
+    await submitGameResults('2026-04-15', rounds)
+
+    const [, data] = mockSetDoc.mock.calls[0]
+    for (const i of [1, 3, 4, 6, 7, 8, 9]) {
+      expect(data).not.toHaveProperty(`round${i}Answers`)
+    }
+  })
 })
 
 describe('fetchSolveRates', () => {
@@ -114,8 +134,8 @@ describe('fetchSolveRates', () => {
       }),
     })
 
-    const rates = await fetchSolveRates('2026-04-15')
-    expect(rates).toEqual([80, 50, 100, 0, 20, 70, 90, 40, 30, 10])
+    const result = await fetchSolveRates('2026-04-15')
+    expect(result.rates).toEqual([80, 50, 100, 0, 20, 70, 90, 40, 30, 10])
   })
 
   it('returns null when document does not exist', async () => {
@@ -123,8 +143,8 @@ describe('fetchSolveRates', () => {
       exists: () => false,
     })
 
-    const rates = await fetchSolveRates('2026-04-15')
-    expect(rates).toBeNull()
+    const result = await fetchSolveRates('2026-04-15')
+    expect(result).toBeNull()
   })
 
   it('treats missing round fields as 0', async () => {
@@ -137,10 +157,10 @@ describe('fetchSolveRates', () => {
       }),
     })
 
-    const rates = await fetchSolveRates('2026-04-15')
-    expect(rates[0]).toBe(80)
+    const result = await fetchSolveRates('2026-04-15')
+    expect(result.rates[0]).toBe(80)
     for (let i = 1; i < 10; i++) {
-      expect(rates[i]).toBe(0)
+      expect(result.rates[i]).toBe(0)
     }
   })
 
@@ -153,7 +173,40 @@ describe('fetchSolveRates', () => {
       }),
     })
 
-    const rates = await fetchSolveRates('2026-04-15')
-    expect(rates).toBeNull()
+    const result = await fetchSolveRates('2026-04-15')
+    expect(result).toBeNull()
+  })
+
+  it('returns per-round answer counts alongside rates', async () => {
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        totalGames: 50,
+        round0Solved: 40,
+        round0Answers: { chin: 30, inch: 8, rich: 2 },
+        round1Solved: 25,
+        round1Answers: { baste: 20, beats: 5 },
+      }),
+    })
+
+    const result = await fetchSolveRates('2026-04-15')
+    expect(result.answerCounts[0]).toEqual({ chin: 30, inch: 8, rich: 2 })
+    expect(result.answerCounts[1]).toEqual({ baste: 20, beats: 5 })
+  })
+
+  it('treats missing round{N}Answers as empty maps', async () => {
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        totalGames: 50,
+        round0Solved: 40,
+        round0Answers: { chin: 30 },
+        // round1Answers absent
+      }),
+    })
+
+    const result = await fetchSolveRates('2026-04-15')
+    expect(result.answerCounts[0]).toEqual({ chin: 30 })
+    expect(result.answerCounts[1]).toEqual({})
   })
 })

@@ -1104,6 +1104,23 @@ header h1 {
   margin-top: 8px;
 }
 
+.word-list-grid .word-row {
+  align-items: center;
+}
+
+.word-popularity {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #818384;
+  min-width: 40px;
+  text-align: left;
+}
+
+.word-list-grid .word-row.player-answer .word-popularity {
+  color: #f5c542;
+  font-weight: bold;
+}
+
 .more-answers-link {
   font-size: 14px;
   color: #818384;

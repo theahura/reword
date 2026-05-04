@@ -29,17 +29,19 @@
           <div class="section-label">Possible Words ({{ round.possibleAnswers.length }})</div>
           <div class="word-list-grid">
             <div
-              v-for="(word, wi) in round.possibleAnswers"
-              :key="wi"
+              v-for="entry in displayedAnswers"
+              :key="entry.word"
               data-testid="word-row"
               class="modal-tile-rack word-row"
+              :class="{ 'player-answer': entry.word === round.answer }"
             >
               <ScrabbleTile
-                v-for="(tile, ti) in getTileClasses(word)"
+                v-for="(tile, ti) in getTileClasses(entry.word)"
                 :key="ti"
                 :letter="tile.letter"
                 :tile-class="tile.source === 'offered' ? 'offered' : ''"
               />
+              <span v-if="answerCounts" class="word-popularity">{{ entry.percent }}%</span>
             </div>
           </div>
         </div>
@@ -49,12 +51,14 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import ScrabbleTile from './ScrabbleTile.vue';
 import { matchTypedToTiles } from '../game.js';
 
 const props = defineProps({
   round: { type: Object, required: true },
   roundIndex: { type: Number, required: true },
+  answerCounts: { type: Object, default: null },
 });
 defineEmits(['close']);
 
@@ -66,4 +70,19 @@ function getTileClasses(word) {
   );
   return matched;
 }
+
+const displayedAnswers = computed(() => {
+  const words = props.round.possibleAnswers;
+  if (!props.answerCounts) {
+    return words.map(word => ({ word, percent: 0 }));
+  }
+  const total = Object.values(props.answerCounts).reduce((sum, n) => sum + n, 0);
+  const entries = words.map(word => {
+    const count = props.answerCounts[word] || 0;
+    const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+    return { word, percent, count };
+  });
+  entries.sort((a, b) => b.count - a.count);
+  return entries;
+});
 </script>

@@ -100,6 +100,7 @@ header h1 {
   display: flex;
   gap: 16px;
   align-items: center;
+  position: relative;
 }
 
 .timer-display {
@@ -114,9 +115,39 @@ header h1 {
   animation: pulse 1s ease-in-out infinite;
 }
 
+.timer-display.timer-penalty {
+  animation: timer-penalty-flash 400ms ease-out;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+@keyframes timer-penalty-flash {
+  0%   { color: #e74c3c; transform: translateX(0); }
+  20%  { color: #e74c3c; transform: translateX(-4px); }
+  40%  { color: #e74c3c; transform: translateX(4px); }
+  60%  { color: #e74c3c; transform: translateX(-3px); }
+  80%  { color: #e74c3c; transform: translateX(2px); }
+  100% { color: inherit; transform: translateX(0); }
+}
+
+.time-penalty-badge {
+  position: absolute;
+  right: 0;
+  top: -4px;
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: bold;
+  color: #e74c3c;
+  pointer-events: none;
+  animation: time-penalty-rise 800ms ease-out forwards;
+}
+
+@keyframes time-penalty-rise {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-32px); opacity: 0; }
 }
 
 #letter-score {
@@ -729,6 +760,8 @@ header h1 {
   .fade-in,
   #input-area .tile,
   .timer-display.timer-warning,
+  .timer-display.timer-penalty,
+  .time-penalty-badge,
   .loading-icon {
     animation: none;
   }

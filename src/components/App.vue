@@ -31,7 +31,15 @@
         >
           <template #timer>
             <span id="letter-score">Letters: {{ runningLetterScore }}</span>
-            <span v-if="!timerDisabled" class="timer-display" :class="{ 'timer-warning': timerWarning }">{{ timerDisplay }}</span>
+            <span v-if="!timerDisabled" class="timer-display" :class="{ 'timer-warning': timerWarning, 'timer-penalty': timerPenaltyActive }">{{ timerDisplay }}</span>
+            <span
+              v-if="!timerDisabled && timerPenaltyVisible"
+              :key="timerPenaltyKey"
+              :data-penalty-key="timerPenaltyKey"
+              class="time-penalty-badge"
+              data-testid="time-penalty-badge"
+              aria-hidden="true"
+            >-5s</span>
           </template>
         </GameBoard>
 
@@ -103,8 +111,14 @@ const state = reactive({
 
 let timerInterval = null;
 const ROUND_TIME_MS = window.matchMedia('(pointer: coarse)').matches ? 70000 : 60000;
+const PENALTY_MS = 5000;
 const timerDisplay = ref(formatRoundTime(ROUND_TIME_MS));
 const timerWarning = ref(false);
+const timerPenaltyActive = ref(false);
+const timerPenaltyVisible = ref(false);
+const timerPenaltyKey = ref(0);
+let penaltyFlashTimeout = null;
+let penaltyBadgeTimeout = null;
 const hintIndex = ref(null);
 const hintAvailable = ref(false);
 
@@ -154,6 +168,18 @@ const runningLetterScore = computed(() => state.completedRounds.reduce((sum, r) 
 const streakStats = ref(null);
 const lifetimeStats = ref(null);
 const solveRates = ref(null);
+
+function applyTimePenalty() {
+  if (timerDisabled.value || state.roundDeadline === null) return;
+  state.roundDeadline -= PENALTY_MS;
+  timerPenaltyKey.value++;
+  timerPenaltyActive.value = true;
+  timerPenaltyVisible.value = true;
+  if (penaltyFlashTimeout) clearTimeout(penaltyFlashTimeout);
+  if (penaltyBadgeTimeout) clearTimeout(penaltyBadgeTimeout);
+  penaltyFlashTimeout = setTimeout(() => { timerPenaltyActive.value = false; }, 400);
+  penaltyBadgeTimeout = setTimeout(() => { timerPenaltyVisible.value = false; }, 800);
+}
 
 function startTimer() {
   if (!state.startTime) state.startTime = Date.now();
@@ -212,6 +238,7 @@ function handleSubmit() {
     message.value = 'Not a valid answer. Try again!';
     messageType.value = 'error';
     playSound('playWrong');
+    applyTimePenalty();
     return;
   }
 
@@ -466,6 +493,8 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval);
+  if (penaltyFlashTimeout) clearTimeout(penaltyFlashTimeout);
+  if (penaltyBadgeTimeout) clearTimeout(penaltyBadgeTimeout);
   if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
 });
 </script>

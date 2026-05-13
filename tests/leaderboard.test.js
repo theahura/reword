@@ -164,17 +164,33 @@ describe('fetchSolveRates', () => {
     }
   })
 
-  it('returns null when fewer than 10 games played', async () => {
+  it('returns null when fewer than 5 games played', async () => {
     mockGetDoc.mockResolvedValueOnce({
       exists: () => true,
       data: () => ({
-        totalGames: 9,
-        round0Solved: 7,
+        totalGames: 4,
+        round0Solved: 3,
       }),
     })
 
     const result = await fetchSolveRates('2026-04-15')
     expect(result).toBeNull()
+  })
+
+  it('returns rates when exactly 5 games played', async () => {
+    mockGetDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        totalGames: 5,
+        round0Solved: 4,
+        round1Solved: 3,
+      }),
+    })
+
+    const result = await fetchSolveRates('2026-04-15')
+    expect(result.rates[0]).toBe(80)
+    expect(result.rates[1]).toBe(60)
+    expect(result.rates[2]).toBe(0)
   })
 
   it('returns per-round answer counts alongside rates', async () => {

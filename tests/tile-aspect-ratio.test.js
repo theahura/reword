@@ -63,4 +63,16 @@ describe('modal tile rack shrink-to-fit behavior', () => {
     const allProps = rules.join('\n');
     expect(allProps).toMatch(/aspect-ratio\s*:\s*1/);
   });
+
+  it('modal tiles override base margin so flex gap controls spacing', () => {
+    const rules = getRuleProperties(css, '.modal-tile-rack .tile');
+    const allProps = rules.join('\n');
+    expect(allProps).toMatch(/margin\s*:\s*0/);
+  });
+
+  it('modal tiles allow shrinking below content size for long words', () => {
+    const rules = getRuleProperties(css, '.modal-tile-rack .tile');
+    const allProps = rules.join('\n');
+    expect(allProps).toMatch(/min-width\s*:\s*0/);
+  });
 });

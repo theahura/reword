@@ -179,12 +179,14 @@ export function generateShareText(results, dateStr, totalTimeMs, timerDisabled) 
     return '🟩';
   }).join('');
   const solved = results.filter(r => r.answer.length > 0).length;
+  const totalLetters = results.reduce((sum, r) => sum + r.answer.length, 0);
+  const letterLabel = totalLetters === 1 ? 'letter' : 'letters';
   if (timerDisabled) {
-    return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length}\nrewordgame.xyz`;
+    return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length} | ${totalLetters} ${letterLabel}\nrewordgame.xyz`;
   }
   const mins = Math.floor(totalTimeMs / 1000 / 60);
   const secs = Math.floor(totalTimeMs / 1000) % 60;
-  return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length} | ${mins}:${secs.toString().padStart(2, '0')}\nrewordgame.xyz`;
+  return `Reword ${dateStr}\n${emojis}\n${solved}/${results.length} | ${totalLetters} ${letterLabel} | ${mins}:${secs.toString().padStart(2, '0')}\nrewordgame.xyz`;
 }
 
 export function matchTypedToTiles(typedLetters, rootLetters, offeredLetters) {

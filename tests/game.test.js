@@ -446,7 +446,7 @@ describe('generateShareText', () => {
     const lines = text.split('\n');
     expect(lines[0]).toBe('Reword 2026-04-05');
     expect(lines[1]).toBe('🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩');
-    expect(lines[2]).toBe('10/10 | 1:00');
+    expect(lines[2]).toBe('10/10 | 40 letters | 1:00');
     expect(lines[lines.length - 1]).toBe('rewordgame.xyz');
   });
 
@@ -466,7 +466,7 @@ describe('generateShareText', () => {
     const text = generateShareText(results, '2026-04-05', 30000);
     const lines = text.split('\n');
     expect(lines[1]).toBe('🟩⬜🟩⬜🟩🟩⬜🟩🟩🟩');
-    expect(lines[2]).toBe('7/10 | 0:30');
+    expect(lines[2]).toBe('7/10 | 27 letters | 0:30');
   });
 
   it('shows all white squares when no rounds solved', () => {
@@ -474,7 +474,7 @@ describe('generateShareText', () => {
     const text = generateShareText(results, '2026-04-05', 120000);
     const lines = text.split('\n');
     expect(lines[1]).toBe('⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜');
-    expect(lines[2]).toBe('0/10 | 2:00');
+    expect(lines[2]).toBe('0/10 | 0 letters | 2:00');
   });
 
   it('omits time from share text when timer is disabled', () => {
@@ -483,17 +483,33 @@ describe('generateShareText', () => {
     const lines = text.split('\n');
     expect(lines[0]).toBe('Reword 2026-04-05');
     expect(lines[1]).toBe('🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩');
-    expect(lines[2]).toBe('10/10');
-    expect(text).not.toContain('|');
+    expect(lines[2]).toBe('10/10 | 40 letters');
     expect(text).not.toContain('1:00');
     expect(lines[lines.length - 1]).toBe('rewordgame.xyz');
   });
 
-  it('includes time in share text when timer is not disabled', () => {
-    const results = Array.from({ length: 10 }, () => ({ answer: 'word', timeMs: 1000, root: 'wor' }));
-    const text = generateShareText(results, '2026-04-05', 60000, false);
+  it('uses singular letter when total is exactly 1', () => {
+    const results = [
+      { answer: 'a', timeMs: 1000, root: '' },
+      ...Array.from({ length: 9 }, () => ({ answer: '', timeMs: 1000, root: 'abc' })),
+    ];
+    const text = generateShareText(results, '2026-04-05', 10000);
     const lines = text.split('\n');
-    expect(lines[2]).toBe('10/10 | 1:00');
+    expect(lines[2]).toBe('1/10 | 1 letter | 0:10');
+  });
+
+  it('sums letter counts across answers of varying lengths', () => {
+    const results = [
+      { answer: 'cat', timeMs: 1000, root: 'ca' },
+      { answer: 'words', timeMs: 1000, root: 'wor' },
+      { answer: 'jumping', timeMs: 1000, root: 'jump' },
+      { answer: '', timeMs: 1000, root: 'abc' },
+      { answer: 'hi', timeMs: 1000, root: 'h' },
+      ...Array.from({ length: 5 }, () => ({ answer: '', timeMs: 1000, root: 'xyz' })),
+    ];
+    const text = generateShareText(results, '2026-04-05', 45000);
+    const lines = text.split('\n');
+    expect(lines[2]).toBe('4/10 | 17 letters | 0:45');
   });
 
   it('shows yellow squares for hinted rounds that were solved', () => {

@@ -54,31 +54,42 @@ export function getAnswersForRound(round) {
   return [...common, ...rest];
 }
 
+export function dayIndexFromDateStr(dateStr) {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / 86400000);
+}
+
+// Deterministically walk a fixed shuffled order of `pool`, advancing by day so
+// a root is not reused until the whole pool is exhausted. The order is seeded by
+// a constant string (not the date) so it stays stable across every day while
+// being decoupled from the quality-sorted order in puzzles.json.
+function cyclicSelection(pool, orderSeed, dayIndex, count) {
+  const order = seededShuffle([...pool], getDailyRng(orderSeed));
+  const size = order.length;
+  const start = (((dayIndex * count) % size) + size) % size;
+  const result = [];
+  for (let i = 0; i < count; i++) {
+    result.push(order[(start + i) % size]);
+  }
+  return result;
+}
+
 export function selectDailyPuzzle(puzzleData, dateStr) {
   const rng = getDailyRng(dateStr);
+  const dayIndex = dayIndexFromDateStr(dateStr);
   const rounds = [];
 
-  const pick = (pool, count) => {
-    const shuffled = seededShuffle([...pool], rng);
-    // If pool is smaller than count, cycle through it
-    const result = [];
-    for (let i = 0; i < count; i++) {
-      result.push(shuffled[i % shuffled.length]);
-    }
-    return result;
-  };
-
-  rounds.push(...pick(puzzleData[3], 2));
-  rounds.push(...pick(puzzleData[4], 3));
-  rounds.push(...pick(puzzleData[5], 3));
-  rounds.push(...pick(puzzleData[6], 1));
+  rounds.push(...cyclicSelection(puzzleData[3], 'reword-cycle-order-3', dayIndex, 2));
+  rounds.push(...cyclicSelection(puzzleData[4], 'reword-cycle-order-4', dayIndex, 3));
+  rounds.push(...cyclicSelection(puzzleData[5], 'reword-cycle-order-5', dayIndex, 3));
+  rounds.push(...cyclicSelection(puzzleData[6], 'reword-cycle-order-6', dayIndex, 1));
 
   // 7+ letter words: combine all pools of length 7+
   const sevenPlus = [];
-  for (const [len, entries] of Object.entries(puzzleData)) {
-    if (Number(len) >= 7) sevenPlus.push(...entries);
+  for (const len of Object.keys(puzzleData).map(Number).sort((a, b) => a - b)) {
+    if (len >= 7) sevenPlus.push(...puzzleData[len]);
   }
-  rounds.push(...pick(sevenPlus, 1));
+  rounds.push(...cyclicSelection(sevenPlus, 'reword-cycle-order-7plus', dayIndex, 1));
 
   return rounds.map(entry => {
     let bestLetters = getOfferedLetters(entry, rng);

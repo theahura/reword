@@ -171,6 +171,108 @@ describe('selectDailyPuzzle', () => {
   });
 });
 
+describe('selectDailyPuzzle cycling', () => {
+  // Length-3 bucket: 10 roots, 2 used per day -> size divisible by count, so a
+  // full cycle covers every root exactly once before any repeat (clean tiling).
+  // Length-4 bucket: 7 roots, 3 used per day -> size NOT divisible by count, the
+  // boundary-straddling case that ships in production (real buckets are 500 % 3 != 0).
+  const cycleData = {
+    3: [
+      { root: 'cat', expansions: { s: ['cats', 'acts'] } },
+      { root: 'dog', expansions: { s: ['dogs'] } },
+      { root: 'pen', expansions: { s: ['pens'] } },
+      { root: 'bat', expansions: { s: ['bats', 'tabs'] } },
+      { root: 'rat', expansions: { s: ['rats', 'arts'] } },
+      { root: 'tip', expansions: { s: ['tips', 'pits'] } },
+      { root: 'net', expansions: { s: ['nets', 'tens'] } },
+      { root: 'map', expansions: { s: ['maps', 'amps'] } },
+      { root: 'cup', expansions: { s: ['cups'] } },
+      { root: 'pin', expansions: { s: ['pins', 'nips'] } },
+    ],
+    4: [
+      { root: 'rind', expansions: { e: ['diner'] } },
+      { root: 'lamp', expansions: { c: ['clamp'] } },
+      { root: 'tone', expansions: { s: ['stone', 'notes', 'onset'] } },
+      { root: 'care', expansions: { s: ['acres', 'scare'] } },
+      { root: 'dust', expansions: { e: ['duets'] } },
+      { root: 'trap', expansions: { s: ['parts', 'strap'] } },
+      { root: 'lime', expansions: { s: ['miles', 'slime'] } },
+    ],
+    5: [
+      { root: 'heart', expansions: { d: ['thread'] } },
+      { root: 'plant', expansions: { e: ['planet'] } },
+      { root: 'bread', expansions: { k: ['barked'] } },
+    ],
+    6: [
+      { root: 'garden', expansions: { e: ['angered'] } },
+    ],
+    7: [
+      { root: 'strange', expansions: { r: ['granters'] } },
+    ],
+  };
+
+  function consecutiveDates(startDateStr, count) {
+    const [y, m, d] = startDateStr.split('-').map(Number);
+    const base = Date.UTC(y, m - 1, d);
+    const dates = [];
+    for (let i = 0; i < count; i++) {
+      const dt = new Date(base + i * 86400000);
+      dates.push(
+        `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`
+      );
+    }
+    return dates;
+  }
+
+  function rootsOfLength(dateStr, len) {
+    return selectDailyPuzzle(cycleData, dateStr)
+      .map(p => p.root)
+      .filter(r => r.length === len);
+  }
+
+  it('exhausts a cleanly-tiled bucket before repeating', () => {
+    // len-3: 10 roots, 2/day -> one full 5-day cycle covers every root once.
+    const cycle = consecutiveDates('2026-01-01', 5);
+    for (const date of cycle) {
+      expect(new Set(rootsOfLength(date, 3)).size).toBe(2);
+    }
+    const collected = cycle.flatMap(d => rootsOfLength(d, 3));
+    expect(collected).toHaveLength(10);
+    expect(new Set(collected).size).toBe(10);
+    expect(new Set(collected)).toEqual(new Set(cycleData[3].map(e => e.root)));
+
+    // Day 6 (one full cycle later) reuses day 1's roots.
+    const [dayAfterCycle] = consecutiveDates('2026-01-06', 1);
+    expect(rootsOfLength(dayAfterCycle, 3)).toEqual(rootsOfLength(cycle[0], 3));
+  });
+
+  it('keeps a minimum spacing when bucket size is not divisible by the daily count', () => {
+    // len-4: 7 roots, 3/day. floor(7/3) = 2, so no root may repeat within any
+    // 2 consecutive days, and over the full 7-day period each root appears 3 times.
+    const period = consecutiveDates('2026-01-01', 7);
+    const perDay = period.map(d => rootsOfLength(d, 4));
+
+    for (const roots of perDay) {
+      expect(new Set(roots).size).toBe(3);
+    }
+
+    // No root repeats within floor(7/3) = 2 consecutive days.
+    for (let i = 0; i + 1 < perDay.length; i++) {
+      const window = [...perDay[i], ...perDay[i + 1]];
+      expect(new Set(window).size).toBe(window.length);
+    }
+
+    // Over the full period every root is shown the same number of times.
+    const counts = new Map();
+    for (const roots of perDay) {
+      for (const r of roots) counts.set(r, (counts.get(r) || 0) + 1);
+    }
+    expect(new Set(counts.keys())).toEqual(new Set(cycleData[4].map(e => e.root)));
+    expect(counts.size).toBe(7);
+    expect([...counts.values()].every(v => v === 3)).toBe(true);
+  });
+});
+
 describe('isTrivialAnswer', () => {
   it('returns true when answer appears in round.trivialAnswers', () => {
     const round = { root: 'rind', trivialAnswers: ['rinds'] };
